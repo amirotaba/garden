@@ -31,7 +31,7 @@ func (m *mysqlUserRepository) SignIn(password, email string) (domain.User, error
 	return user, nil
 }
 
-func (m *mysqlUserRepository) Account(username string) (domain.User, error) {
+func (m *mysqlUserRepository) Account(username string) (domain.UserResponse, error) {
 	var user domain.User
 	if err := m.Conn.Where("user_name = ?", username).First(&user).Error; err != nil {
 		return domain.User{}, err
@@ -90,8 +90,21 @@ func (m *mysqlUserRepository) ShowTrees(id int) (domain.Tree, error) {
 	}
 	return tree, nil
 }
-func (m *mysqlUserRepository) ShowComment(id int) error {}
-func (m *mysqlUserRepository) Addtree(id int) error {}
-func (m *mysqlUserRepository) RemoveTree(id int) error {}
-func (m *mysqlUserRepository) AddAttend(id int) error {}
-
+func (m *mysqlUserRepository) Addtree(tree domain.Tree) error {
+	if err := m.Conn.Create(tree).Error; err != nil {
+		return err
+	}
+	return nil
+}
+func (m *mysqlUserRepository) RemoveTree(id int) error {
+	var tree domain.Tree
+	if err := m.Conn.Where("id = ?", id).Delete(&tree).Error; err != nil {
+		return err
+	}
+}
+func (m *mysqlUserRepository) AddAttend(tree domain.Tree) error {
+	if err := m.Conn.Where("id = ?", tree.ID).Update("attend", tree.Attend).Error; err != nil {
+		return err
+	}
+	return nil
+}

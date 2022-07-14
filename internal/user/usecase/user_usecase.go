@@ -3,13 +3,10 @@ package usecase
 import (
 	"errors"
 	"garden/internal/domain"
-
-	"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 type userUsecase struct {
 	UserRepo domain.UserRepository
-
 }
 
 func NewUserUsecase(u domain.UserRepository, a domain.AdminRepository, f domain.FarmerRepository) domain.UserUsecase {
@@ -18,7 +15,7 @@ func NewUserUsecase(u domain.UserRepository, a domain.AdminRepository, f domain.
 	}
 }
 
-func (a *userUsecase) SignUp (user *domain.User) error {
+func (a *userUsecase) SignUp(user *domain.User) error {
 	if _, err := a.UserRepo.Account(user.UserName); err == nil {
 		return errors.New("this username is taken")
 	}
@@ -58,7 +55,7 @@ func (a *userUsecase) Account(username string) (domain.UserResponse, error) {
 	}
 	u := domain.UserResponse{
 		UserName: user.UserName,
-		Email: user.Email,
+		Email:    user.Email,
 	}
 	return u, nil
 }
@@ -127,13 +124,18 @@ func (a *userUsecase) AddTree(tree domain.Tree) error {
 	return nil
 }
 func (a *userUsecase) RemoveTree(id int) error {
-	if err := a.UserRepo.Remove(tree, id); err != nil {
+	if err := a.UserRepo.RemoveTree(id); err != nil {
 		return err
 	}
 	return nil
 }
 func (a *userUsecase) AddAttend(tree domain.Tree) error {
-	if err := a.UserRepo.AddAttend(tree.ID, tree.Attend); err != nil {
+	t, err := a.UserRepo.SearchTree(tree.ID)
+	if err != nil {
+		return err
+	}
+	t.attend = append(t.attend, tree.attend)
+	if err := a.UserRepo.AddAttend(t); err != nil {
 		return err
 	}
 	return nil

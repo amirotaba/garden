@@ -22,12 +22,12 @@ type Farmer struct {
 	gorm.Model
 	UserName string
 	PassWord string
-	Trees []int
+	Trees    []int
 }
 
 type Garden struct {
-	Id int
-	Trees []int
+	Id        int
+	Trees     []int
 	Locations string
 }
 
@@ -37,21 +37,21 @@ type Comment struct {
 }
 
 type Tree struct {
-	ID int
+	ID       int
 	FarmerID int
-	Age int
-	Attend []string
-	Comment map[int]string
+	Age      int
+	Attend   []string
+	Comment  map[int]string
 }
 
 type CommentForm struct {
-	ID int
+	ID     int
 	TreeID int
-	Text string
+	Text   string
 }
 
 type LoginForm struct {
-	Type string
+	Type     string
 	Username string
 	Password string
 }
@@ -63,7 +63,7 @@ type UserUsecase interface {
 	Account(username string) (UserResponse, error)
 	Comment(id int, treeID int, text string) error
 	//admin
-	showGarden() (Garden)
+	showGarden() Garden
 	RemoveGarden(id int) error
 	AddGarden(gar Garden) error
 	AddFarmer(far Farmer) error
@@ -79,15 +79,14 @@ type UserRepository interface {
 	SignUp(newuser *User) error
 	SignIn(password, username string) (User, error)
 	Account(username string) (UserResponse, error)
-	Comment(tree Tree) (error)
+	Comment(tree Tree) error
 	SearchTree(id int) (Tree, error)
-	ShowGarden
-	RemoveGarden
-	AddGarden
-	ShowTrees
-	ShowComment
-	AddTree
-	RemoveTree
-	ShowTree
-	AddAttend
+	ShowGarden() (Garden, error)
+	RemoveGarden(id int) error
+	AddGarden(garden Garden) error
+	ShowTrees(id int) (Tree, error)
+	// ShowComment(tree Tree) error
+	AddTree(tree Tree) error
+	RemoveTree(id int) error
+	AddAttend(tree Tree) error
 }
