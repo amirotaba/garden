@@ -16,6 +16,18 @@ func NewMysqlUserRepository(Conn *gorm.DB) domain.UserRepository {
 	}
 }
 
+func NewMysqlAdminRepository(Conn *gorm.DB) domain.AdminRepository {
+	return &mysqlUserRepository{
+		Conn: Conn,
+	}
+}
+
+func NewMysqlFarmerRepository(Conn *gorm.DB) domain.FarmerRepository {
+	return &mysqlUserRepository{
+		Conn: Conn,
+	}
+}
+
 func (m *mysqlUserRepository) SignUp(user *domain.User) error {
 	if err := m.Conn.Create(user).Error; err != nil {
 		return err
@@ -40,7 +52,7 @@ func (m *mysqlUserRepository) Account(username string) (domain.User, error) {
 }
 
 func (m *mysqlUserRepository) Comment(tree domain.Tree) error {
-	if err := m.Conn.Where("id = ?", tree.ID).Update("comment", tree.Comment).Error; err != nil {
+	if err := m.Conn.Model(tree).Where("id = ?", tree.ID).Update("comment", tree.Comment).Error; err != nil {
 		return err
 	}
 	return nil
@@ -54,7 +66,7 @@ func (m *mysqlUserRepository) SearchTree(id int) (domain.Tree, error) {
 	return tree, nil
 }
 
-func (m *mysqlUserRepository) SignInFarmer(password, username string) (domain.Farmer, error) {
+func (m *mysqlUserRepository) SignInFarmer(username, password string) (domain.Farmer, error) {
 	var farmer domain.Farmer
 	if err := m.Conn.Where("user_name = ?", username).First(&farmer).Error; err != nil {
 		return domain.Farmer{}, err
@@ -62,7 +74,7 @@ func (m *mysqlUserRepository) SignInFarmer(password, username string) (domain.Fa
 	return farmer, nil
 }
 
-func (m *mysqlUserRepository) SignInAdmin(password, username string) (domain.Admin, error) {
+func (m *mysqlUserRepository) SignInAdmin(username, password string) (domain.Admin, error) {
 	var admin domain.Admin
 	if err := m.Conn.Where("user_name = ?", username).First(&admin).Error; err != nil {
 		return domain.Admin{}, err
@@ -77,6 +89,16 @@ func (m *mysqlUserRepository) ShowGarden() ([]domain.Garden, error) {
 	}
 	return garden, nil
 
+}
+
+//admin
+
+func (m *mysqlUserRepository) DeletedBy(id int, u string) error {
+	var garden domain.Garden
+	if err := m.Conn.Model(garden).Where("id = ?", id).Update("deleted_by", u).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *mysqlUserRepository) RemoveGarden(id int) error {
@@ -99,6 +121,8 @@ func (m *mysqlUserRepository) AddFarmer(farmer *domain.Farmer) error {
 	}
 	return nil
 }
+
+//farmer
 
 func (m *mysqlUserRepository) ShowTrees(id int) ([]domain.Tree, error) {
 	var tree []domain.Tree

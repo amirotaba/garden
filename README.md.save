@@ -1,10 +1,29 @@
-Garden Trees
-before run make a MySQL database and enter the config in cmd/main.go and then run main.go
+garden trees
 
 ├── cmd
 │   └── main.go
 ├── go.mod
 ├── go.sum
+User funcs
+├──── SignUp
+├─── SignIn
+├── Account(account info)
+└─ Comment(add comment to trees)
+
+Farmer funcs
+├────── SignIn
+├───── ShowTrees
+├──── ShowComments
+├─── AddTree
+├── RemoveTree
+└─ AddAttend
+
+Admin funcs
+├───── SignIn
+├──── ShowGarden
+├─── AddGarden
+├── RemoveGarden
+└─ Addfarmer
 ├── internal
 │   ├── domain
 │   │   └── user.go
@@ -18,7 +37,6 @@ before run make a MySQL database and enter the config in cmd/main.go and then ru
 │       └── usecase
 │           └── user_usecase.go
 └── README.md
-
 
 User funcs
 ├──── SignUp

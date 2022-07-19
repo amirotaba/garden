@@ -20,12 +20,17 @@ func main() {
 	if err != nil {
 		log.Println("Connecting to database failed")
 	}
+	_ = Db.AutoMigrate(&domain.Admin{})
 	_ = Db.AutoMigrate(&domain.User{})
 	_ = Db.AutoMigrate(&domain.Farmer{})
 	_ = Db.AutoMigrate(&domain.Garden{})
 	_ = Db.AutoMigrate(&domain.Tree{})
 	r := echo.New()
 	ur := mysqlhandler.NewMysqlUserRepository(Db)
+	ar := mysqlhandler.NewMysqlAdminRepository(Db)
+	fr := mysqlhandler.NewMysqlFarmerRepository(Db)
 	uu := usecase.NewUserUsecase(ur)
-	httpdelivery.NewUserHandler(r, uu)
+	au := usecase.NewAdminUsecase(ar)
+	fu := usecase.NewFarmerUsecase(fr)
+	httpdelivery.NewUserHandler(r, uu, au, fu)
 }

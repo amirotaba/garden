@@ -17,24 +17,24 @@ type User struct {
 	Email    string `json:"email"`
 }
 
-type UserResponse struct {
-	UserName string
-	Email    string
-	Token    string
-}
-
 type Farmer struct {
 	gorm.Model
-	UserName string `json:"user_name"`
-	PassWord string `json:"pass_word"`
-	Trees    string `json:"trees"`
-	GardenID int    `json:"garden_id"`
+	UserName  string `json:"user_name"`
+	PassWord  string `json:"pass_word"`
+	Trees     string `json:"trees"`
+	GardenID  int    `json:"garden_id"`
+	CreatedBy string `json:"created_by"`
+	UpdatedBy string `json:"updated_by"`
+	DeletedBy string `json:"deleted_by"`
 }
 
 type Garden struct {
 	gorm.Model
-	Trees    string `json:"trees"`
-	Location string `json:"location"`
+	Trees     string `json:"trees"`
+	Location  string `json:"location"`
+	CreatedBy string `json:"created_by"`
+	UpdatedBy string `json:"updated_by"`
+	DeletedBy string `json:"deleted_by"`
 }
 
 type Tree struct {
@@ -53,9 +53,14 @@ type CommentForm struct {
 }
 
 type LoginForm struct {
-	Type     string `json:"type"`
 	Username string `json:"user_name"`
 	Password string `json:"pass_word"`
+}
+
+type UserResponse struct {
+	UserName string
+	Email    string
+	Token    string
 }
 
 type AuthMessage struct {
@@ -76,13 +81,21 @@ type AttendForm struct {
 
 type UserUsecase interface {
 	SignUp(newuser *User) error
-	SignIn(tp string, password, username string) (UserResponse, error)
+	USignIn(username, password string) (UserResponse, error)
 	Account(username string) (UserResponse, error)
 	Comment(id int, treeID int, text string) error
+}
+
+type AdminUsecase interface {
+	ASignIn(username, password string) (UserResponse, error)
 	ShowGarden() ([]Garden, error)
-	RemoveGarden(id int) error
+	RemoveGarden(id string, u string) error
 	AddGarden(gar *Garden) error
 	AddFarmer(far *Farmer) error
+}
+
+type FarmerUsecase interface {
+	FSignIn(username, password string) (UserResponse, error)
 	ShowTrees(id string) ([]Tree, error)
 	ShowComments(farmerid, id int) (string, error)
 	AddTree(tree *Tree) error
@@ -92,16 +105,23 @@ type UserUsecase interface {
 
 type UserRepository interface {
 	SignUp(newuser *User) error
-	SignInUser(password, username string) (User, error)
+	SignInUser(username, password string) (User, error)
 	Account(username string) (User, error)
 	Comment(tree Tree) error
 	SearchTree(id int) (Tree, error)
-	SignInAdmin(password string, username string) (Admin, error)
-	SignInFarmer(password string, username string) (Farmer, error)
+}
+
+type AdminRepository interface {
+	SignInAdmin(username, password string) (Admin, error)
 	ShowGarden() ([]Garden, error)
+	DeletedBy(id int, u string) error
 	RemoveGarden(id int) error
 	AddGarden(garden *Garden) error
 	AddFarmer(farmer *Farmer) error
+}
+
+type FarmerRepository interface {
+	SignInFarmer(username, password string) (Farmer, error)
 	ShowTrees(id int) ([]Tree, error)
 	AddTree(tree *Tree) error
 	RemoveTree(id int) error
@@ -111,4 +131,5 @@ type UserRepository interface {
 	SearchGarden(id int) (Garden, error)
 	LastTree() (Tree, error)
 	UpdateGarden(id int, tree string) error
+	SearchTree(id int) (Tree, error)
 }
