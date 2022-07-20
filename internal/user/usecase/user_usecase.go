@@ -77,13 +77,8 @@ func (a *userUsecase) Account(username string) (domain.UserResponse, error) {
 	return u, nil
 }
 
-func (a *userUsecase) Comment(id int, treeID int, text string) error {
-	t, err := a.UserRepo.SearchTree(treeID)
-	if err != nil {
-		return err
-	}
-	t.Comment = t.Comment + strconv.Itoa(id) + ": " + text + "\n"
-	if err := a.UserRepo.Comment(t); err != nil {
+func (a *userUsecase) Comment(comment *domain.Comment, user_id string) error {
+	if err := a.UserRepo.Comment(comment); err != nil {
 		return err
 	}
 	return nil
@@ -110,6 +105,42 @@ func (a *userUsecase) ASignIn(email, password string) (domain.UserResponse, erro
 	return u, nil
 }
 
+func (a *userUsecase) AddGarden(garden *domain.Garden, user_id string) error {
+	idInt, err := strconv.Atoi(user_id)
+	if err != nil {
+		return err
+	}
+	garden.UserId = uint(idInt)
+	if err := a.AdminRepo.AddGarden(garden); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) AddLocation(location *domain.GardenLocation, user_id string) error {
+	idInt, err := strconv.Atoi(user_id)
+	if err != nil {
+		return err
+	}
+	location.UserId = uint(idInt)
+	if err := a.AdminRepo.AddLocation(location); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) AddFarmer(farmer *domain.Farmer, user_id string) error {
+	idInt, err := strconv.Atoi(user_id)
+	if err != nil {
+		return err
+	}
+	farmer.UserId = uint(idInt)
+	if err := a.AdminRepo.AddFarmer(farmer); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *userUsecase) ShowGarden() ([]domain.Garden, error) {
 	g, err := a.AdminRepo.ShowGarden()
 	if err != nil {
@@ -117,24 +148,25 @@ func (a *userUsecase) ShowGarden() ([]domain.Garden, error) {
 	}
 	return g, nil
 }
-func (a *userUsecase) RemoveGarden(id string, u string) error {
-	idInt, _ := strconv.Atoi(id)
-	if err := a.AdminRepo.DeletedBy(idInt, u); err != nil {
+
+func (a *userUsecase) RemoveGarden(id string, user_id string) error {
+	garId, err := strconv.Atoi(id)
+	if err != nil {
 		return err
 	}
-	if err := a.AdminRepo.RemoveGarden(idInt); err != nil {
+	garIdUint := uint(garId)
+	idInt, err := strconv.Atoi(user_id)
+	if err != nil {
 		return err
 	}
-	return nil
-}
-func (a *userUsecase) AddGarden(garden *domain.Garden) error {
-	if err := a.AdminRepo.AddGarden(garden); err != nil {
+	idUint := uint(idInt)
+	if err := a.AdminRepo.DeletedBy(garIdUint, idUint); err != nil {
 		return err
 	}
-	return nil
-}
-func (a *userUsecase) AddFarmer(farmer *domain.Farmer) error {
-	if err := a.AdminRepo.AddFarmer(farmer); err != nil {
+	if err := a.AdminRepo.RemoveGarden(garIdUint); err != nil {
+		return err
+	}
+	if err := a.AdminRepo.RemoveGardenLocation(garIdUint); err != nil {
 		return err
 	}
 	return nil
@@ -161,63 +193,31 @@ func (a *userUsecase) FSignIn(email, password string) (domain.UserResponse, erro
 	return u, nil
 }
 
-func (a *userUsecase) ShowTrees(id string) ([]domain.Tree, error) {
-	idInt, _ := strconv.Atoi(id)
-	t, err := a.FarmerRepo.ShowTrees(idInt)
+func (a *userUsecase) AddTree(tree *domain.Tree, user_id string) error {
+	//tree.Qr = make a QRCode
+	idInt, err := strconv.Atoi(user_id)
 	if err != nil {
-		return []domain.Tree{}, err
-	}
-	return t, nil
-}
-func (a *userUsecase) ShowComments(farmerid, id int) (string, error) {
-	t, err := a.FarmerRepo.SearchTree(id)
-	if err != nil {
-		return "", err
-	}
-	if t.FarmerID != farmerid {
-		return "", errors.New("this tree isn't yours")
-	}
-	return t.Comment, nil
-}
-func (a *userUsecase) AddTree(tree *domain.Tree) error {
-	if err := a.FarmerRepo.AddTree(tree); err != nil {
 		return err
 	}
-	t, err := a.FarmerRepo.LastTree()
-	if err != nil {
+	tree.FarmerID = uint(idInt)
+	if err := a.FarmerRepo.AddTree(tree); err != nil {
 		return err
 	}
 	f, err := a.FarmerRepo.SearchFarmer(tree.FarmerID)
 	if err != nil {
 		return err
 	}
-	f.Trees = f.Trees + ", " + strconv.Itoa(int(t.ID))
-	if err := a.FarmerRepo.UpdateFarmer(tree.FarmerID, f.Trees); err != nil {
-		return err
-	}
 	g, err := a.FarmerRepo.SearchGarden(f.GardenID)
 	if err != nil {
 		return err
 	}
-	g.Trees = g.Trees + ", " + strconv.Itoa(int(t.ID))
-	if err := a.FarmerRepo.UpdateGarden(f.GardenID, g.Trees); err != nil {
+	g.TreesCount += 1
+	if err := a.FarmerRepo.UpdateGarden(f.GardenID, g.TreesCount); err != nil {
 		return err
 	}
 	return nil
 }
-func (a *userUsecase) RemoveTree(treeid, farmerid int) error {
-	t, err := a.FarmerRepo.SearchTree(treeid)
-	if err != nil {
-		return err
-	}
-	if t.FarmerID != farmerid {
-		return errors.New("this tree isn't yours")
-	}
-	if err := a.FarmerRepo.RemoveTree(treeid); err != nil {
-		return err
-	}
-	return nil
-}
+
 func (a *userUsecase) AddAttend(form *domain.AttendForm) error {
 	t, err := a.FarmerRepo.SearchTree(form.ID)
 	if err != nil {
@@ -225,6 +225,67 @@ func (a *userUsecase) AddAttend(form *domain.AttendForm) error {
 	}
 	t.Attend = t.Attend + ", " + form.Text
 	if err := a.FarmerRepo.AddAttend(t); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ShowTrees(id string) ([]domain.Tree, error) {
+	idInt, _ := strconv.Atoi(id)
+	t, err := a.FarmerRepo.ShowTrees(uint(idInt))
+	if err != nil {
+		return []domain.Tree{}, err
+	}
+	return t, nil
+}
+
+func (a *userUsecase) ShowComments(farmerid, id string) ([]domain.Comment, error) {
+	fidInt, err := strconv.Atoi(farmerid)
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	tidInt, err := strconv.Atoi(id)
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	t, err := a.FarmerRepo.SearchTree(uint(tidInt))
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	if t.FarmerID != uint(fidInt) {
+		return []domain.Comment{}, errors.New("this tree isn't yours")
+	}
+	c, err := a.FarmerRepo.SearchComment(uint(tidInt))
+	return c, nil
+}
+
+func (a *userUsecase) RemoveTree(treeid, farmerid string) error {
+	tIdInt, err := strconv.Atoi(treeid)
+	if err != nil {
+		return err
+	}
+	fIdInt, err := strconv.Atoi(farmerid)
+	if err != nil {
+		return err
+	}
+	tIdUint, fIdUint := uint(tIdInt), uint(fIdInt)
+	t, err := a.FarmerRepo.SearchTree(tIdUint)
+	if err != nil {
+		return err
+	}
+	if t.FarmerID != fIdUint {
+		return errors.New("this tree isn't yours")
+	}
+	if err := a.FarmerRepo.RemoveTree(tIdUint); err != nil {
+		return err
+	}
+	return nil
+	g, err := a.FarmerRepo.SearchGarden(t.GardenId)
+	if err != nil {
+		return err
+	}
+	g.TreesCount -= 1
+	if err := a.FarmerRepo.UpdateGarden(t.GardenId, g.TreesCount); err != nil {
 		return err
 	}
 	return nil

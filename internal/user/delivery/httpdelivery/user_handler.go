@@ -2,8 +2,6 @@ package httpdelivery
 
 import (
 	"garden/internal/domain"
-	"strconv"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,18 +20,19 @@ func NewUserHandler(e *echo.Echo, us domain.UserUsecase, au domain.AdminUsecase,
 	e.POST("user/signup", handler.SignUp)
 	e.POST("user/signin", handler.USignIn)
 	e.GET("user/account/:username", handler.Account)
-	e.POST("user/addcmt", handler.Comment)
+	e.POST("user/addcmt/:id", handler.Comment)
 
 	e.POST("admin/signin", handler.ASignIn)
+	e.POST("admin/grd/add/:id", handler.AddGarden)
+	e.POST("admin/grd/add/loc/:id", handler.AddLocation)
+	e.POST("admin/frm/add/:id", handler.AddFarmer)
 	e.GET("admin/grd/shw", handler.ShowGarden)
-	e.GET("admin/grd/rmv/:username/:id", handler.RemoveGarden)
-	e.POST("admin/grd/add/:username", handler.AddGarden)
-	e.POST("admin/frm/add/:username", handler.AddFarmer)
+	e.GET("admin/grd/rmv/:aid/:id", handler.RemoveGarden)
 
 	e.POST("farmer/signin", handler.FSignIn)
 	e.GET("farmer/tree/shw/:farmerid", handler.ShowTrees)
 	e.GET("farmer/cmt/shw/:farmerid/:treeid", handler.ShowComments)
-	e.POST("farmer/tree/add/", handler.AddTree)
+	e.POST("farmer/tree/add/:farmerid", handler.AddTree)
 	e.GET("farmer/tree/rmv/:farmerid/:treeid", handler.RemoveTree)
 	e.POST("farmer/tree/attend", handler.AddAttend)
 
@@ -92,11 +91,12 @@ func (m *UserHandler) Account(e echo.Context) error {
 }
 
 func (m *UserHandler) Comment(e echo.Context) error {
-	form := new(domain.CommentForm)
+	form := new(domain.Comment)
+	user_id := e.Param("id")
 	if err := e.Bind(form); err != nil {
 		return err
 	}
-	if err := m.UUsecase.Comment(form.ID, form.TreeID, form.Text); err != nil {
+	if err := m.UUsecase.Comment(form, user_id); err != nil {
 		return err
 	}
 	return e.JSON(200, "Comment saved")
@@ -129,9 +129,9 @@ func (m *UserHandler) ShowGarden(e echo.Context) error {
 }
 
 func (m *UserHandler) RemoveGarden(e echo.Context) error {
-	u := e.Param("username")
+	aid := e.Param("aid")
 	id := e.Param("id")
-	if err := m.AUsecase.RemoveGarden(id, u); err != nil {
+	if err := m.AUsecase.RemoveGarden(id, aid); err != nil {
 		return err
 	}
 	return e.JSON(200, "Garden has been removed.")
@@ -142,8 +142,8 @@ func (m *UserHandler) AddGarden(e echo.Context) error {
 	if err := e.Bind(garden); err != nil {
 		return err
 	}
-	garden.CreatedBy = e.Param("username")
-	if err := m.AUsecase.AddGarden(garden); err != nil {
+	user_id := e.Param("id")
+	if err := m.AUsecase.AddGarden(garden, user_id); err != nil {
 		return err
 	}
 	return e.JSON(200, "Garden added successfuly.")
@@ -154,11 +154,23 @@ func (m *UserHandler) AddFarmer(e echo.Context) error {
 	if err := e.Bind(farmer); err != nil {
 		return err
 	}
-	farmer.CreatedBy = e.Param("username")
-	if err := m.AUsecase.AddFarmer(farmer); err != nil {
+	user_id := e.Param("id")
+	if err := m.AUsecase.AddFarmer(farmer, user_id); err != nil {
 		return err
 	}
 	return e.JSON(200, "farmer added successfuly.")
+}
+
+func (m *UserHandler) AddLocation(e echo.Context) error {
+	user_id := e.Param("id")
+	location := new(domain.GardenLocation)
+	if err := e.Bind(location); err != nil {
+		return err
+	}
+	if err := m.AUsecase.AddLocation(location, user_id); err != nil {
+		return err
+	}
+	return e.JSON(200, "Location added successfuly.")
 }
 
 //farmer
@@ -179,43 +191,16 @@ func (m *UserHandler) FSignIn(e echo.Context) error {
 	return e.JSON(200, msg)
 }
 
-func (m *UserHandler) ShowTrees(e echo.Context) error {
-	id := e.Param("farmerid")
-	t, err := m.FUsecase.ShowTrees(id)
-	if err != nil {
-		return err
-	}
-	return e.JSON(200, t)
-}
-
-func (m *UserHandler) ShowComments(e echo.Context) error {
-	id, _ := strconv.Atoi(e.Param("treeid"))
-	farmerid, _ := strconv.Atoi(e.Param("farmerid"))
-	comment, err := m.FUsecase.ShowComments(farmerid, id)
-	if err != nil {
-		return err
-	}
-	return e.JSON(200, comment)
-}
-
 func (m *UserHandler) AddTree(e echo.Context) error {
 	tree := new(domain.Tree)
 	if err := e.Bind(tree); err != nil {
 		return err
 	}
-	if err := m.FUsecase.AddTree(tree); err != nil {
+	user_id := e.Param("farmerid")
+	if err := m.FUsecase.AddTree(tree, user_id); err != nil {
 		return err
 	}
 	return e.JSON(200, "Tree Added successfuly.")
-}
-
-func (m *UserHandler) RemoveTree(e echo.Context) error {
-	farmerid, _ := strconv.Atoi(e.Param("farmerid"))
-	treeid, _ := strconv.Atoi(e.Param("treeid"))
-	if err := m.FUsecase.RemoveTree(treeid, farmerid); err != nil {
-		return err
-	}
-	return e.JSON(200, "Tree has been removed.")
 }
 
 func (m *UserHandler) AddAttend(e echo.Context) error {
@@ -227,4 +212,32 @@ func (m *UserHandler) AddAttend(e echo.Context) error {
 		return err
 	}
 	return e.JSON(200, "Attend added.")
+}
+
+func (m *UserHandler) ShowTrees(e echo.Context) error {
+	id := e.Param("farmerid")
+	t, err := m.FUsecase.ShowTrees(id)
+	if err != nil {
+		return err
+	}
+	return e.JSON(200, t)
+}
+
+func (m *UserHandler) ShowComments(e echo.Context) error {
+	id := e.Param("treeid")
+	farmerid := e.Param("farmerid")
+	comment, err := m.FUsecase.ShowComments(farmerid, id)
+	if err != nil {
+		return err
+	}
+	return e.JSON(200, comment)
+}
+
+func (m *UserHandler) RemoveTree(e echo.Context) error {
+	farmerid := e.Param("farmerid")
+	treeid := e.Param("treeid")
+	if err := m.FUsecase.RemoveTree(treeid, farmerid); err != nil {
+		return err
+	}
+	return e.JSON(200, "Tree has been removed.")
 }

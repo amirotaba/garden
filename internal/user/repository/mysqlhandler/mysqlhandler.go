@@ -51,14 +51,14 @@ func (m *mysqlUserRepository) Account(username string) (domain.User, error) {
 	return user, nil
 }
 
-func (m *mysqlUserRepository) Comment(tree domain.Tree) error {
-	if err := m.Conn.Model(tree).Where("id = ?", tree.ID).Update("comment", tree.Comment).Error; err != nil {
+func (m *mysqlUserRepository) Comment(comment *domain.Comment) error {
+	if err := m.Conn.Create(comment).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *mysqlUserRepository) SearchTree(id int) (domain.Tree, error) {
+func (m *mysqlUserRepository) SearchTree(id uint) (domain.Tree, error) {
 	var tree domain.Tree
 	if err := m.Conn.Where("id = ?", id).First(&tree).Error; err != nil {
 		return domain.Tree{}, err
@@ -66,13 +66,7 @@ func (m *mysqlUserRepository) SearchTree(id int) (domain.Tree, error) {
 	return tree, nil
 }
 
-func (m *mysqlUserRepository) SignInFarmer(username, password string) (domain.Farmer, error) {
-	var farmer domain.Farmer
-	if err := m.Conn.Where("user_name = ?", username).First(&farmer).Error; err != nil {
-		return domain.Farmer{}, err
-	}
-	return farmer, nil
-}
+//admin
 
 func (m *mysqlUserRepository) SignInAdmin(username, password string) (domain.Admin, error) {
 	var admin domain.Admin
@@ -80,6 +74,27 @@ func (m *mysqlUserRepository) SignInAdmin(username, password string) (domain.Adm
 		return domain.Admin{}, err
 	}
 	return admin, nil
+}
+
+func (m *mysqlUserRepository) AddGarden(garden *domain.Garden) error {
+	if err := m.Conn.Create(garden).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *mysqlUserRepository) AddLocation(location *domain.GardenLocation) error {
+	if err := m.Conn.Create(location).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *mysqlUserRepository) AddFarmer(farmer *domain.Farmer) error {
+	if err := m.Conn.Create(farmer).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *mysqlUserRepository) ShowGarden() ([]domain.Garden, error) {
@@ -91,17 +106,7 @@ func (m *mysqlUserRepository) ShowGarden() ([]domain.Garden, error) {
 
 }
 
-//admin
-
-func (m *mysqlUserRepository) DeletedBy(id int, u string) error {
-	var garden domain.Garden
-	if err := m.Conn.Model(garden).Where("id = ?", id).Update("deleted_by", u).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *mysqlUserRepository) RemoveGarden(id int) error {
+func (m *mysqlUserRepository) RemoveGarden(id uint) error {
 	var garden domain.Garden
 	if err := m.Conn.Where("id = ?", id).Delete(&garden).Error; err != nil {
 		return err
@@ -109,14 +114,17 @@ func (m *mysqlUserRepository) RemoveGarden(id int) error {
 	return nil
 }
 
-func (m *mysqlUserRepository) AddGarden(garden *domain.Garden) error {
-	if err := m.Conn.Create(garden).Error; err != nil {
+func (m *mysqlUserRepository) DeletedBy(id uint, u uint) error {
+	var garden domain.Garden
+	if err := m.Conn.Model(garden).Where("id = ?", id).Update("user_id", u).Error; err != nil {
 		return err
 	}
 	return nil
 }
-func (m *mysqlUserRepository) AddFarmer(farmer *domain.Farmer) error {
-	if err := m.Conn.Create(farmer).Error; err != nil {
+
+func (m *mysqlUserRepository) RemoveGardenLocation(id uint) error {
+	var gardenlocation domain.GardenLocation
+	if err := m.Conn.Where("garden_id = ?", id).Delete(&gardenlocation).Error; err != nil {
 		return err
 	}
 	return nil
@@ -124,22 +132,16 @@ func (m *mysqlUserRepository) AddFarmer(farmer *domain.Farmer) error {
 
 //farmer
 
-func (m *mysqlUserRepository) ShowTrees(id int) ([]domain.Tree, error) {
-	var tree []domain.Tree
-	if err := m.Conn.Where("farmer_id = ?", id).Find(&tree).Error; err != nil {
-		return []domain.Tree{}, err
+func (m *mysqlUserRepository) SignInFarmer(username, password string) (domain.Farmer, error) {
+	var farmer domain.Farmer
+	if err := m.Conn.Where("user_name = ?", username).First(&farmer).Error; err != nil {
+		return domain.Farmer{}, err
 	}
-	return tree, nil
+	return farmer, nil
 }
+
 func (m *mysqlUserRepository) AddTree(tree *domain.Tree) error {
 	if err := m.Conn.Create(tree).Error; err != nil {
-		return err
-	}
-	return nil
-}
-func (m *mysqlUserRepository) RemoveTree(id int) error {
-	var tree domain.Tree
-	if err := m.Conn.Where("id = ?", id).Delete(&tree).Error; err != nil {
 		return err
 	}
 	return nil
@@ -152,7 +154,23 @@ func (m *mysqlUserRepository) AddAttend(tree domain.Tree) error {
 	return nil
 }
 
-func (m *mysqlUserRepository) UpdateFarmer(id int, trees string) error {
+func (m *mysqlUserRepository) ShowTrees(id uint) ([]domain.Tree, error) {
+	var tree []domain.Tree
+	if err := m.Conn.Where("farmer_id = ?", id).Find(&tree).Error; err != nil {
+		return []domain.Tree{}, err
+	}
+	return tree, nil
+}
+
+func (m *mysqlUserRepository) RemoveTree(id uint) error {
+	var tree domain.Tree
+	if err := m.Conn.Where("id = ?", id).Delete(&tree).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *mysqlUserRepository) UpdateFarmer(id uint, trees string) error {
 	var farmer domain.Farmer
 	if err := m.Conn.Model(farmer).Where("id = ?", id).Update("trees", trees).Error; err != nil {
 		return err
@@ -160,7 +178,7 @@ func (m *mysqlUserRepository) UpdateFarmer(id int, trees string) error {
 	return nil
 }
 
-func (m *mysqlUserRepository) SearchFarmer(id int) (domain.Farmer, error) {
+func (m *mysqlUserRepository) SearchFarmer(id uint) (domain.Farmer, error) {
 	var farmer domain.Farmer
 	if err := m.Conn.Where("id = ?", id).First(&farmer).Error; err != nil {
 		return domain.Farmer{}, err
@@ -168,12 +186,20 @@ func (m *mysqlUserRepository) SearchFarmer(id int) (domain.Farmer, error) {
 	return farmer, nil
 }
 
-func (m *mysqlUserRepository) SearchGarden(id int) (domain.Garden, error) {
+func (m *mysqlUserRepository) SearchGarden(id uint) (domain.Garden, error) {
 	var garden domain.Garden
 	if err := m.Conn.Where("id = ?", id).First(&garden).Error; err != nil {
 		return domain.Garden{}, err
 	}
 	return garden, nil
+}
+
+func (m *mysqlUserRepository) UpdateGarden(id, trees uint) error {
+	var garden domain.Garden
+	if err := m.Conn.Model(garden).Where("id = ?", id).Update("trees", trees).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *mysqlUserRepository) LastTree() (domain.Tree, error) {
@@ -184,10 +210,10 @@ func (m *mysqlUserRepository) LastTree() (domain.Tree, error) {
 	return tree, nil
 }
 
-func (m *mysqlUserRepository) UpdateGarden(id int, trees string) error {
-	var garden domain.Garden
-	if err := m.Conn.Model(garden).Where("id = ?", id).Update("trees", trees).Error; err != nil {
-		return err
+func (m *mysqlUserRepository) SearchComment(tid uint) ([]domain.Comment, error) {
+	var comment []domain.Comment
+	if err := m.Conn.Where("tree_id = ?", tid).Find(&comment).Error; err != nil {
+		return []domain.Comment{}, err
 	}
-	return nil
+	return comment, nil
 }
