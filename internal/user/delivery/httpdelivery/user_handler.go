@@ -22,6 +22,11 @@ func NewUserHandler(e *echo.Echo, us domain.UserUsecase, au domain.AdminUsecase,
 	e.GET("user/account/:username", handler.Account)
 	e.POST("user/addcmt/:id", handler.Comment)
 
+	e.POST("usertype/create", handler.CreateUserType)
+	e.GET("usertype/read", handler.ReadUserType)
+	e.POST("usertype/update", handler.UpdateUserType)
+	e.POST("usertype/delete", handler.Deleteusertype)
+
 	e.POST("admin/signin", handler.ASignIn)
 	e.POST("admin/grd/add/:id", handler.AddGarden)
 	e.POST("admin/grd/add/loc/:id", handler.AddLocation)
@@ -100,6 +105,43 @@ func (m *UserHandler) Comment(e echo.Context) error {
 		return err
 	}
 	return e.JSON(200, "Comment saved")
+}
+
+func (m *UserHandler) CreateUserType(e echo.Context) error {
+	usertype := new(domain.UserType)
+	if err := e.Bind(usertype); err != nil {
+		return err
+	}
+	if err := m.AUsecase.CreateUserType(usertype); err != nil {
+		return err
+	}
+	return e.JSON(200, msg)
+}
+
+func (m *UserHandler) ReadUserType(e echo.Context) error {
+	t, err := m.AUsecase.ReadUserType()
+	if err != nil {
+		return err
+	}
+	return e.JSON(200, t)
+}
+
+func (m *UserHandler) UpdateUserType(e echo.Context) error {
+	usertype := new(domain.UserType)
+	if err := e.Bind(usertype); err != nil {
+		return err
+	}
+	if err := m.AUsecase.UpdateUserType(usertype); err != nil {
+		return err
+	}
+	return e.JSON(200, "user updated successfuly")
+}
+
+func (m *UserHandler) Deleteusertype(e echo.Context) error {
+	usertype := new(domain.UserType)
+	if err := e.Bind(usertype); err != nil {
+		return err
+	}
 }
 
 //admin

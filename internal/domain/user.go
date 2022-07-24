@@ -2,32 +2,22 @@ package domain
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
-
-type Admin struct {
-	gorm.Model
-	UserName string `json:"user_name"`
-	PassWord string `json:"pass_word"`
-	IsActive bool   `json:"is_active"`
-}
 
 type User struct {
 	gorm.Model
+	Type     uint   `json:"type"`
 	UserName string `json:"user_name"`
 	PassWord string `json:"pass_word"`
 	Email    string `json:"email"`
 	IsActive bool   `json:"is_active"`
 }
 
-type Farmer struct {
+type UserType struct {
 	gorm.Model
-	UserName  string `json:"user_name"`
-	PassWord  string `json:"pass_word"`
-	GardenID  uint   `json:"garden_id"`
-	UserId    uint   `json:"user_id"`
-	UpdatedBy string `json:"updated_by"`
-	DeletedBy string `json:"deleted_by"`
-	IsActive  bool   `json:"is_active"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type Garden struct {
@@ -58,21 +48,34 @@ type GardenLocation struct {
 	UserId uint `json:"user_id"`
 }
 
+type GardenType struct {
+	gorm.Model
+	Name        uint   `json:"name"`
+	Description string `json:"description"`
+}
+
 type Tree struct {
 	gorm.Model
 	FullName string `json:"full_name"`
-	Age      uint   `json:"age"`
-	//DateOfBirth time.Time `json:"date_of_birth"`
-	Type     string  `json:"type"`
-	Lat      float64 `json:"lat"`
-	Long     float64 `json:"long"`
-	Qr       string
-	Length   float64 `json:"length"`
-	Image    string  `json:"image"`
-	GardenId uint    `json:"garden_id"`
+	//Age      uint   `json:"age"`
+	DateOfBirth time.Time `json:"date_of_birth"`
+	Type        uint      `json:"type"`
+	Lat         float64   `json:"lat"`
+	Long        float64   `json:"long"`
+	Qr          string
+	Length      float64 `json:"length"`
+	Image       string  `json:"image"`
+	GardenId    uint    `json:"garden_id"`
+	Description string  `json:"description"`
 	//
 	Attend   string `json:"attend"`
 	FarmerID uint
+}
+
+type TreeType struct {
+	gorm.Model
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type Comment struct {
@@ -130,7 +133,7 @@ type AdminUsecase interface {
 	ShowGarden() ([]Garden, error)
 	RemoveGarden(id string, u string) error
 	AddGarden(gar *Garden, user_id string) error
-	AddFarmer(far *Farmer, user_id string) error
+	AddFarmer(far *User, user_id string) error
 	AddLocation(location *GardenLocation, user_id string) error
 }
 
@@ -152,24 +155,24 @@ type UserRepository interface {
 }
 
 type AdminRepository interface {
-	SignInAdmin(username, password string) (Admin, error)
+	SignInAdmin(username, password string) (User, error)
 	ShowGarden() ([]Garden, error)
 	DeletedBy(id, u uint) error
 	RemoveGarden(id uint) error
 	AddGarden(garden *Garden) error
-	AddFarmer(farmer *Farmer) error
+	AddFarmer(farmer *User) error
 	AddLocation(location *GardenLocation) error
 	RemoveGardenLocation(id uint) error
 }
 
 type FarmerRepository interface {
-	SignInFarmer(username, password string) (Farmer, error)
+	SignInFarmer(username, password string) (User, error)
 	ShowTrees(id uint) ([]Tree, error)
 	AddTree(tree *Tree) error
 	RemoveTree(id uint) error
 	AddAttend(tree Tree) error
 	UpdateFarmer(id uint, trees string) error
-	SearchFarmer(id uint) (Farmer, error)
+	SearchFarmer(id uint) (User, error)
 	SearchGarden(id uint) (Garden, error)
 	LastTree() (Tree, error)
 	UpdateGarden(id uint, trees uint) error
