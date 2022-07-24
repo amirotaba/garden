@@ -1,42 +1,5 @@
 Garden Trees
 before run make a MySQL database and enter the config in cmd/main.go and then run main.go
 
-├── cmd
-│   └── main.go
-├── go.mod
-├── go.sum
-├── internal
-│   ├── domain
-│   │   └── user.go
-│   └── user
-│       ├── delivery
-│       │   └── httpdelivery
-│       │       └── user_handler.go
-│       ├── repository
-│       │   └── mysqlhandler
-│       │       └── mysqlhandler.go
-│       └── usecase
-│           └── user_usecase.go
-└── README.md
+![Screenshot from 2022-07-20 14-35-11](https://user-images.githubusercontent.com/90252371/179956870-41047cb0-03a0-41c2-870e-23b2171169f5.png)
 
-
-User funcs
-├──── SignUp
-├─── SignIn
-├── Account(account info)
-└─ Comment(add comment to trees)
-
-Farmer funcs
-├────── SignIn
-├───── ShowTrees
-├──── ShowComments
-├─── AddTree
-├── RemoveTree
-└─ AddAttend
-
-Admin funcs
-├───── SignIn
-├──── ShowGarden
-├─── AddGarden
-├── RemoveGarden
-└─ Addfarmer
