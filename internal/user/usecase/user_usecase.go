@@ -9,16 +9,15 @@ import (
 )
 
 type userUsecase struct {
-	UserRepo   domain.UserRepository
-	AdminRepo  domain.AdminRepository
-	FarmerRepo domain.FarmerRepository
+	//UserRepo  domain.UserRepository
+	AdminRepo domain.AdminRepository
 }
 
-func NewUserUsecase(u domain.UserRepository) domain.UserUsecase {
-	return &userUsecase{
-		UserRepo: u,
-	}
-}
+//func NewUserUsecase(u domain.UserRepository) domain.UserUsecase {
+//	return &userUsecase{
+//		UserRepo: u,
+//	}
+//}
 
 func NewAdminUsecase(a domain.AdminRepository) domain.AdminUsecase {
 	return &userUsecase{
@@ -26,266 +25,418 @@ func NewAdminUsecase(a domain.AdminRepository) domain.AdminUsecase {
 	}
 }
 
-func NewFarmerUsecase(f domain.FarmerRepository) domain.FarmerUsecase {
-	return &userUsecase{
-		FarmerRepo: f,
+//func NewFarmerUsecase(f domain.FarmerRepository) domain.FarmerUsecase {
+//	return &userUsecase{
+//		AdminRepo: f,
+//	}
+//}
+
+func (a *userUsecase) SignIn(form *domain.LoginForm) (domain.UserResponse, error) {
+	user, err := a.AdminRepo.SignIn(form)
+	if err != nil {
+		return domain.UserResponse{}, err
 	}
+	if user.PassWord != form.Password {
+		return domain.UserResponse{}, errors.New("incorrect password")
+	}
+	t, err := a.AdminRepo.UserType(form.Type)
+	if err != nil {
+		return domain.UserResponse{}, err
+	}
+	jwtsig, errs := jwt.GenerateJWTSigned(user)
+	if errs != nil {
+		return domain.UserResponse{}, errs
+	}
+	u := domain.UserResponse{
+		UserName: user.UserName,
+		Type:     t,
+		Token:    jwtsig,
+	}
+	return u, nil
 }
 
 func (a *userUsecase) SignUp(user *domain.User) error {
-	if _, err := a.UserRepo.Account(user.UserName); err == nil {
+	if _, err := a.AdminRepo.AccountUser(user.UserName); err == nil {
 		return errors.New("this username is taken")
 	}
-	if _, err := a.UserRepo.SignInUser("1", user.Email); err == nil {
-		return errors.New("this email is used")
-	}
-	if err := a.UserRepo.SignUp(user); err != nil {
+	if err := a.AdminRepo.SignUp(user); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) USignIn(email, password string) (domain.UserResponse, error) {
-	user, err := a.UserRepo.SignInUser(password, email)
+func (a *userUsecase) Account(username string) ([]domain.UserResponse, error) {
+	var list []domain.UserResponse
+	if username == "" {
+		user, err := a.AdminRepo.Account()
+		if err != nil {
+			return []domain.UserResponse{}, err
+		}
+		for i := range user {
+			u := domain.UserResponse{
+				UserName: user[i].UserName,
+			}
+			list = append(list, u)
+		}
+		return list, nil
+	}
+	user, err := a.AdminRepo.AccountUser(username)
 	if err != nil {
-		return domain.UserResponse{}, err
+		return []domain.UserResponse{}, err
 	}
-	if user.PassWord != password {
-		return domain.UserResponse{}, errors.New("incorrect password")
+	for i := range user {
+		u := domain.UserResponse{
+			UserName: user[i].UserName,
+		}
+		list = append(list, u)
 	}
-	jwtsig, errs := jwt.GenerateJWTSigned(user)
-	if errs != nil {
-		return domain.UserResponse{}, errs
-	}
-	u := domain.UserResponse{
-		UserName: user.UserName,
-		Email:    user.Email,
-		Token:    jwtsig,
-	}
-	return u, nil
+	return list, nil
 }
 
-func (a *userUsecase) Account(username string) (domain.UserResponse, error) {
-	user, err := a.UserRepo.Account(username)
-	if err != nil {
-		return domain.UserResponse{}, err
-	}
-	u := domain.UserResponse{
-		UserName: user.UserName,
-		Email:    user.Email,
-	}
-	return u, nil
-}
-
-func (a *userUsecase) Comment(comment *domain.Comment, user_id string) error {
-	if err := a.UserRepo.Comment(comment); err != nil {
+func (a *userUsecase) UpdateUser(user *domain.User) error {
+	if err := a.AdminRepo.UpdateUser(user); err != nil {
 		return err
 	}
 	return nil
 }
 
-//admin
-
-func (a *userUsecase) ASignIn(email, password string) (domain.UserResponse, error) {
-	user, err := a.AdminRepo.SignInAdmin(email, password)
-	if err != nil {
-		return domain.UserResponse{}, err
-	}
-	if user.PassWord != password {
-		return domain.UserResponse{}, errors.New("incorrect password")
-	}
-	jwtsig, errs := jwt.GenerateJWTSigned(user)
-	if errs != nil {
-		return domain.UserResponse{}, errs
-	}
-	u := domain.UserResponse{
-		UserName: user.UserName,
-		Token:    jwtsig,
-	}
-	return u, nil
-}
-
-func (a *userUsecase) AddGarden(garden *domain.Garden, user_id string) error {
-	idInt, err := strconv.Atoi(user_id)
-	if err != nil {
-		return err
-	}
-	garden.UserId = uint(idInt)
-	if err := a.AdminRepo.AddGarden(garden); err != nil {
+func (a *userUsecase) DeleteUser(user *domain.User) error {
+	if err := a.AdminRepo.DeleteUser(user.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) AddLocation(location *domain.GardenLocation, user_id string) error {
-	idInt, err := strconv.Atoi(user_id)
-	if err != nil {
-		return err
-	}
-	location.UserId = uint(idInt)
-	if err := a.AdminRepo.AddLocation(location); err != nil {
+func (a *userUsecase) CreateUserType(usertype *domain.UserType) error {
+	if err := a.AdminRepo.CreateUserType(usertype); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) AddFarmer(farmer *domain.Farmer, user_id string) error {
-	idInt, err := strconv.Atoi(user_id)
+func (a *userUsecase) ReadUserType(id string) ([]domain.UserType, error) {
+	if id == "" {
+		t, err := a.AdminRepo.ReadUserType()
+		if err != nil {
+			return []domain.UserType{}, err
+		}
+		return t, nil
+	}
+	idInt, err := strconv.Atoi(id)
+	t, err := a.AdminRepo.ReadUserTypeID(uint(idInt))
 	if err != nil {
-		return err
-	}
-	farmer.UserId = uint(idInt)
-	if err := a.AdminRepo.AddFarmer(farmer); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *userUsecase) ShowGarden() ([]domain.Garden, error) {
-	g, err := a.AdminRepo.ShowGarden()
-	if err != nil {
-		return []domain.Garden{}, err
-	}
-	return g, nil
-}
-
-func (a *userUsecase) RemoveGarden(id string, user_id string) error {
-	garId, err := strconv.Atoi(id)
-	if err != nil {
-		return err
-	}
-	garIdUint := uint(garId)
-	idInt, err := strconv.Atoi(user_id)
-	if err != nil {
-		return err
-	}
-	idUint := uint(idInt)
-	if err := a.AdminRepo.DeletedBy(garIdUint, idUint); err != nil {
-		return err
-	}
-	if err := a.AdminRepo.RemoveGarden(garIdUint); err != nil {
-		return err
-	}
-	if err := a.AdminRepo.RemoveGardenLocation(garIdUint); err != nil {
-		return err
-	}
-	return nil
-}
-
-//farmer
-
-func (a *userUsecase) FSignIn(email, password string) (domain.UserResponse, error) {
-	user, err := a.FarmerRepo.SignInFarmer(email, password)
-	if err != nil {
-		return domain.UserResponse{}, err
-	}
-	if user.PassWord != password {
-		return domain.UserResponse{}, errors.New("incorrect password")
-	}
-	jwtsig, errs := jwt.GenerateJWTSigned(user)
-	if errs != nil {
-		return domain.UserResponse{}, errs
-	}
-	u := domain.UserResponse{
-		UserName: user.UserName,
-		Token:    jwtsig,
-	}
-	return u, nil
-}
-
-func (a *userUsecase) AddTree(tree *domain.Tree, user_id string) error {
-	//tree.Qr = make a QRCode
-	idInt, err := strconv.Atoi(user_id)
-	if err != nil {
-		return err
-	}
-	tree.FarmerID = uint(idInt)
-	if err := a.FarmerRepo.AddTree(tree); err != nil {
-		return err
-	}
-	f, err := a.FarmerRepo.SearchFarmer(tree.FarmerID)
-	if err != nil {
-		return err
-	}
-	g, err := a.FarmerRepo.SearchGarden(f.GardenID)
-	if err != nil {
-		return err
-	}
-	g.TreesCount += 1
-	if err := a.FarmerRepo.UpdateGarden(f.GardenID, g.TreesCount); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *userUsecase) AddAttend(form *domain.AttendForm) error {
-	t, err := a.FarmerRepo.SearchTree(form.ID)
-	if err != nil {
-		return err
-	}
-	t.Attend = t.Attend + ", " + form.Text
-	if err := a.FarmerRepo.AddAttend(t); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *userUsecase) ShowTrees(id string) ([]domain.Tree, error) {
-	idInt, _ := strconv.Atoi(id)
-	t, err := a.FarmerRepo.ShowTrees(uint(idInt))
-	if err != nil {
-		return []domain.Tree{}, err
+		return []domain.UserType{}, err
 	}
 	return t, nil
 }
 
-func (a *userUsecase) ShowComments(farmerid, id string) ([]domain.Comment, error) {
-	fidInt, err := strconv.Atoi(farmerid)
-	if err != nil {
-		return []domain.Comment{}, err
-	}
-	tidInt, err := strconv.Atoi(id)
-	if err != nil {
-		return []domain.Comment{}, err
-	}
-	t, err := a.FarmerRepo.SearchTree(uint(tidInt))
-	if err != nil {
-		return []domain.Comment{}, err
-	}
-	if t.FarmerID != uint(fidInt) {
-		return []domain.Comment{}, errors.New("this tree isn't yours")
-	}
-	c, err := a.FarmerRepo.SearchComment(uint(tidInt))
-	return c, nil
-}
-
-func (a *userUsecase) RemoveTree(treeid, farmerid string) error {
-	tIdInt, err := strconv.Atoi(treeid)
-	if err != nil {
-		return err
-	}
-	fIdInt, err := strconv.Atoi(farmerid)
-	if err != nil {
-		return err
-	}
-	tIdUint, fIdUint := uint(tIdInt), uint(fIdInt)
-	t, err := a.FarmerRepo.SearchTree(tIdUint)
-	if err != nil {
-		return err
-	}
-	if t.FarmerID != fIdUint {
-		return errors.New("this tree isn't yours")
-	}
-	if err := a.FarmerRepo.RemoveTree(tIdUint); err != nil {
+func (a *userUsecase) UpdateUserType(usertype *domain.UserType) error {
+	if err := a.AdminRepo.UpdateUserType(usertype); err != nil {
 		return err
 	}
 	return nil
-	g, err := a.FarmerRepo.SearchGarden(t.GardenId)
-	if err != nil {
+}
+
+func (a *userUsecase) DeleteUserType(usertype *domain.UserType) error {
+	if err := a.AdminRepo.DeleteUserType(usertype.ID); err != nil {
 		return err
 	}
-	g.TreesCount -= 1
-	if err := a.FarmerRepo.UpdateGarden(t.GardenId, g.TreesCount); err != nil {
+	return nil
+}
+
+func (a *userUsecase) CreateTag(tag *domain.Tag) error {
+	if err := a.AdminRepo.CreateTag(tag); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ReadTag(id string) ([]domain.Tag, error) {
+	if id == "" {
+		t, err := a.AdminRepo.ReadTag()
+		if err != nil {
+			return []domain.Tag{}, err
+		}
+		return t, nil
+	}
+	idInt, err := strconv.Atoi(id)
+	t, err := a.AdminRepo.ReadTagID(uint(idInt))
+	if err != nil {
+		return []domain.Tag{}, err
+	}
+	return t, nil
+}
+
+func (a *userUsecase) UpdateTag(tag *domain.Tag) error {
+	if err := a.AdminRepo.UpdateTag(tag); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) DeleteTag(tag *domain.Tag) error {
+	if err := a.AdminRepo.DeleteTag(tag.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) CreateGarden(garden *domain.Garden) error {
+	if err := a.AdminRepo.CreateGarden(garden); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ReadGarden(id string) ([]domain.Garden, error) {
+	if id == "" {
+		t, err := a.AdminRepo.ReadGarden()
+		if err != nil {
+			return []domain.Garden{}, err
+		}
+		return t, nil
+	}
+	idInt, err := strconv.Atoi(id)
+	t, err := a.AdminRepo.ReadGardenID(uint(idInt))
+	if err != nil {
+		return []domain.Garden{}, err
+	}
+	return t, nil
+}
+
+func (a *userUsecase) UpdateGarden(garden *domain.Garden) error {
+	if err := a.AdminRepo.UpdateGarden(garden); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) DeleteGarden(garden *domain.Garden) error {
+	if err := a.AdminRepo.DeleteGarden(garden.ID); err != nil {
+		return err
+	}
+	if err := a.AdminRepo.DeleteLocation(garden.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) CreateLocation(location *domain.GardenLocation) error {
+	if err := a.AdminRepo.CreateLocation(location); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ReadLocation(id string) ([]domain.GardenLocation, error) {
+	if id == "" {
+		t, err := a.AdminRepo.ReadLocation()
+		if err != nil {
+			return []domain.GardenLocation{}, err
+		}
+		return t, nil
+	}
+	idInt, err := strconv.Atoi(id)
+	t, err := a.AdminRepo.ReadLocationID(uint(idInt))
+	if err != nil {
+		return []domain.GardenLocation{}, err
+	}
+	return t, nil
+}
+
+func (a *userUsecase) UpdateLocation(loc *domain.GardenLocation) error {
+	if err := a.AdminRepo.UpdateLocation(loc); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) DeleteLocation(loc *domain.GardenLocation) error {
+	if err := a.AdminRepo.DeleteLocation(loc.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) CreateGardenType(gardenType *domain.GardenType) error {
+	if err := a.AdminRepo.CreateGardenType(gardenType); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ReadGardenType(id string) ([]domain.GardenType, error) {
+	if id == "" {
+		t, err := a.AdminRepo.ReadGardenType()
+		if err != nil {
+			return []domain.GardenType{}, err
+		}
+		return t, nil
+	}
+	idInt, err := strconv.Atoi(id)
+	t, err := a.AdminRepo.ReadGardenTypeID(uint(idInt))
+	if err != nil {
+		return []domain.GardenType{}, err
+	}
+	return t, nil
+}
+
+func (a *userUsecase) UpdateGardenType(gardenType *domain.GardenType) error {
+	if err := a.AdminRepo.UpdateGardenType(gardenType); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) DeleteGardenType(gardenType *domain.GardenType) error {
+	if err := a.AdminRepo.DeleteGardenType(gardenType.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) CreateTreeType(treeType *domain.TreeType) error {
+	if err := a.AdminRepo.CreateTreeType(treeType); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ReadTreeType(id string) ([]domain.TreeType, error) {
+	if id == "" {
+		t, err := a.AdminRepo.ReadTreeType()
+		if err != nil {
+			return []domain.TreeType{}, err
+		}
+		return t, nil
+	}
+	idInt, err := strconv.Atoi(id)
+	t, err := a.AdminRepo.ReadTreeTypeID(uint(idInt))
+	if err != nil {
+		return []domain.TreeType{}, err
+	}
+	return t, nil
+}
+
+func (a *userUsecase) UpdateTreeType(treeType *domain.TreeType) error {
+	if err := a.AdminRepo.UpdateTreeType(treeType); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) DeleteTreeType(tree *domain.TreeType) error {
+	if err := a.AdminRepo.DeleteTreeType(tree.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) CreateTree(tree *domain.Tree) error {
+	//tree.Qr = make a QRCode
+	if err := a.AdminRepo.CreateTree(tree); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ReadTree(m map[string]string) ([]domain.Tree, error) {
+	for i := range m {
+		if m[i] != "" {
+			if i != "type" {
+				idInt, err := strconv.Atoi(m[i])
+				if err != nil {
+					return []domain.Tree{}, err
+				}
+				q := i + " = ?"
+				t, err := a.AdminRepo.ReadTreeID(uint(idInt), q)
+				if err != nil {
+					return []domain.Tree{}, err
+				}
+				return t, nil
+			}
+			t, err := a.AdminRepo.ReadTreeByType(m[i])
+			if err != nil {
+				return []domain.Tree{}, err
+			}
+			return t, nil
+		}
+	}
+	tree, err := a.AdminRepo.ReadTree()
+	if err != nil {
+		return []domain.Tree{}, err
+	}
+	return tree, nil
+}
+
+func (a *userUsecase) UpdateTree(tree *domain.Tree) error {
+	if err := a.AdminRepo.UpdateTree(tree); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) DeleteTree(tree *domain.Tree) error {
+	//tIdInt, err := strconv.Atoi(treeid)
+	//if err != nil {
+	//	return err
+	//}
+	//fIdInt, err := strconv.Atoi(farmerid)
+	//if err != nil {
+	//	return err
+	//}
+	//tIdUint, fIdUint := uint(tIdInt), uint(fIdInt)
+	//t, err := a.AdminRepo.SearchTree(tIdUint)
+	//if err != nil {
+	//	return err
+	//}
+	//if t.FarmerID != fIdUint {
+	//	return errors.New("this tree isn't yours")
+	//}
+	if err := a.AdminRepo.DeleteTree(tree.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) CreateComment(comment *domain.Comment) error {
+	if err := a.AdminRepo.CreateComment(comment); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) ReadComment(m map[string]string) ([]domain.Comment, error) {
+	for i := range m {
+		if m[i] != "" {
+			idInt, err := strconv.Atoi(m[i])
+			if err != nil {
+				return []domain.Comment{}, err
+			}
+			q := i + " = ?"
+			t, err := a.AdminRepo.ReadCommentID(uint(idInt), q)
+			if err != nil {
+				return []domain.Comment{}, err
+			}
+			return t, nil
+		}
+	}
+	c, err := a.AdminRepo.ReadComment()
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	return c, nil
+}
+
+func (a *userUsecase) UpdateComment(comment *domain.Comment) error {
+	if err := a.AdminRepo.UpdateComment(comment); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *userUsecase) DeleteComment(comment *domain.Comment) error {
+	if err := a.AdminRepo.DeleteComment(comment.ID); err != nil {
 		return err
 	}
 	return nil

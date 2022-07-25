@@ -8,6 +8,7 @@ import (
 type User struct {
 	gorm.Model
 	Type     uint   `json:"type"`
+	Name     string `json:"name"`
 	UserName string `json:"user_name"`
 	PassWord string `json:"pass_word"`
 	Email    string `json:"email"`
@@ -26,11 +27,7 @@ type Garden struct {
 	Lat         float64 `json:"lat"`
 	Long        float64 `json:"long"`
 	UserId      uint    `json:"user_id"`
-	TreesCount  uint    `json:"trees_count"`
 	Description string  `json:"description"`
-	//
-	Trees     string `json:"trees"`
-	DeletedBy string `json:"deleted_by"`
 }
 
 type GardenLocation struct {
@@ -56,8 +53,7 @@ type GardenType struct {
 
 type Tree struct {
 	gorm.Model
-	FullName string `json:"full_name"`
-	//Age      uint   `json:"age"`
+	FullName    string    `json:"full_name"`
 	DateOfBirth time.Time `json:"date_of_birth"`
 	Type        uint      `json:"type"`
 	Lat         float64   `json:"lat"`
@@ -67,9 +63,6 @@ type Tree struct {
 	Image       string  `json:"image"`
 	GardenId    uint    `json:"garden_id"`
 	Description string  `json:"description"`
-	//
-	Attend   string `json:"attend"`
-	FarmerID uint
 }
 
 type TreeType struct {
@@ -95,13 +88,14 @@ type Tag struct {
 }
 
 type LoginForm struct {
+	Type     uint   `json:"type"`
 	Username string `json:"user_name"`
 	Password string `json:"pass_word"`
 }
 
 type UserResponse struct {
 	UserName string
-	Email    string
+	Type     string
 	Token    string
 }
 
@@ -121,61 +115,110 @@ type AttendForm struct {
 	Text string `json:"text"`
 }
 
-type UserUsecase interface {
-	SignUp(newuser *User) error
-	USignIn(username, password string) (UserResponse, error)
-	Account(username string) (UserResponse, error)
-	Comment(comment *Comment, user_id string) error
-}
-
 type AdminUsecase interface {
-	ASignIn(username, password string) (UserResponse, error)
-	ShowGarden() ([]Garden, error)
-	RemoveGarden(id string, u string) error
-	AddGarden(gar *Garden, user_id string) error
-	AddFarmer(far *User, user_id string) error
-	AddLocation(location *GardenLocation, user_id string) error
-}
-
-type FarmerUsecase interface {
-	FSignIn(username, password string) (UserResponse, error)
-	ShowTrees(id string) ([]Tree, error)
-	ShowComments(farmerid, id string) ([]Comment, error)
-	AddTree(tree *Tree, user_id string) error
-	RemoveTree(farmerid, treeid string) error
-	AddAttend(form *AttendForm) error
-}
-
-type UserRepository interface {
 	SignUp(newuser *User) error
-	SignInUser(username, password string) (User, error)
-	Account(username string) (User, error)
-	Comment(comment *Comment) error
-	SearchTree(id uint) (Tree, error)
+	SignIn(form *LoginForm) (UserResponse, error)
+	Account(string) ([]UserResponse, error)
+	UpdateUser(user *User) error
+	DeleteUser(user *User) error
+
+	CreateGarden(garden *Garden) error
+	ReadGarden(id string) ([]Garden, error)
+	UpdateGarden(garden *Garden) error
+	DeleteGarden(garden *Garden) error
+
+	CreateUserType(usertype *UserType) error
+	ReadUserType(id string) ([]UserType, error)
+	UpdateUserType(usertype *UserType) error
+	DeleteUserType(usertype *UserType) error
+
+	CreateTreeType(treeType *TreeType) error
+	ReadTreeType(id string) ([]TreeType, error)
+	UpdateTreeType(treeType *TreeType) error
+	DeleteTreeType(treetype *TreeType) error
+
+	CreateTag(tag *Tag) error
+	ReadTag(id string) ([]Tag, error)
+	UpdateTag(tag *Tag) error
+	DeleteTag(tag *Tag) error
+
+	CreateLocation(location *GardenLocation) error
+	ReadLocation(id string) ([]GardenLocation, error)
+	UpdateLocation(loc *GardenLocation) error
+	DeleteLocation(loc *GardenLocation) error
+
+	CreateGardenType(gardenType *GardenType) error
+	ReadGardenType(id string) ([]GardenType, error)
+	UpdateGardenType(gardenType *GardenType) error
+	DeleteGardenType(gardenType *GardenType) error
+
+	CreateTree(tree *Tree) error
+	ReadTree(mp map[string]string) ([]Tree, error)
+	UpdateTree(tree *Tree) error
+	DeleteTree(tree *Tree) error
+
+	CreateComment(comment *Comment) error
+	ReadComment(mp map[string]string) ([]Comment, error)
+	UpdateComment(comment *Comment) error
+	DeleteComment(comment *Comment) error
 }
 
 type AdminRepository interface {
-	SignInAdmin(username, password string) (User, error)
-	ShowGarden() ([]Garden, error)
-	DeletedBy(id, u uint) error
-	RemoveGarden(id uint) error
-	AddGarden(garden *Garden) error
-	AddFarmer(farmer *User) error
-	AddLocation(location *GardenLocation) error
-	RemoveGardenLocation(id uint) error
-}
+	CreateGarden(garden *Garden) error
+	ReadGarden() ([]Garden, error)
+	ReadGardenID(u uint) ([]Garden, error)
+	UpdateGarden(garden *Garden) error
+	DeleteGarden(id uint) error
 
-type FarmerRepository interface {
-	SignInFarmer(username, password string) (User, error)
-	ShowTrees(id uint) ([]Tree, error)
-	AddTree(tree *Tree) error
-	RemoveTree(id uint) error
-	AddAttend(tree Tree) error
-	UpdateFarmer(id uint, trees string) error
-	SearchFarmer(id uint) (User, error)
-	SearchGarden(id uint) (Garden, error)
-	LastTree() (Tree, error)
-	UpdateGarden(id uint, trees uint) error
-	SearchTree(id uint) (Tree, error)
-	SearchComment(tid uint) ([]Comment, error)
+	SignUp(newuser *User) error
+	SignIn(form *LoginForm) (User, error)
+	Account() ([]User, error)
+	AccountUser(username string) ([]User, error)
+	UpdateUser(user *User) error
+	DeleteUser(id uint) error
+
+	CreateTreeType(treetype *TreeType) error
+	ReadTreeType() ([]TreeType, error)
+	ReadTreeTypeID(u uint) ([]TreeType, error)
+	UpdateTreeType(treeType *TreeType) error
+	DeleteTreeType(id uint) error
+
+	CreateTag(tag *Tag) error
+	ReadTag() ([]Tag, error)
+	ReadTagID(u uint) ([]Tag, error)
+	UpdateTag(tag *Tag) error
+	DeleteTag(id uint) error
+
+	CreateLocation(location *GardenLocation) error
+	ReadLocation() ([]GardenLocation, error)
+	ReadLocationID(u uint) ([]GardenLocation, error)
+	UpdateLocation(loc *GardenLocation) error
+	DeleteLocation(id uint) error
+
+	CreateUserType(usertype *UserType) error
+	ReadUserType() ([]UserType, error)
+	ReadUserTypeID(id uint) ([]UserType, error)
+	UpdateUserType(userType *UserType) error
+	DeleteUserType(id uint) error
+
+	CreateGardenType(gardenType *GardenType) error
+	ReadGardenType() ([]GardenType, error)
+	ReadGardenTypeID(u uint) ([]GardenType, error)
+	UpdateGardenType(gardenType *GardenType) error
+	DeleteGardenType(id uint) error
+
+	CreateTree(tree *Tree) error
+	ReadTree() ([]Tree, error)
+	ReadTreeID(id uint, q string) ([]Tree, error)
+	ReadTreeByType(t string) ([]Tree, error)
+	UpdateTree(tree *Tree) error
+	DeleteTree(id uint) error
+
+	CreateComment(comment *Comment) error
+	ReadComment() ([]Comment, error)
+	ReadCommentID(id uint, q string) ([]Comment, error)
+	UpdateComment(comment *Comment) error
+	DeleteComment(id uint) error
+
+	UserType(t uint) (string, error)
 }
