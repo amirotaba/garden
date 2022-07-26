@@ -2,45 +2,74 @@ package httpdelivery
 
 import (
 	"garden/internal/domain"
+	"garden/pkg/jwt"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"strconv"
 )
 
 type UserHandler struct {
-	//UUsecase domain.UserUsecase
-	AUsecase domain.AdminUsecase
-	//FUsecase domain.FarmerUsecase
+	AUsecase domain.UserUsecase
 }
 
-func NewUserHandler(e *echo.Echo, au domain.AdminUsecase) {
+func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
 	handler := &UserHandler{
-		//UUsecase: us,
 		AUsecase: au,
-		//FUsecase: fu,
 	}
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	api := e.Group("admin/")
+	api.Use(middleware.JWTWithConfig(jwt.Config))
+
 	e.POST("user/signup", handler.SignUp)
 	e.POST("user/signin", handler.SignIn)
-	e.GET("user/account", handler.Account)
-	e.POST("user/addcmt/", handler.CreateComment)
+	api.GET("user/account", handler.Account)
+	e.POST("user/update", handler.UpdateUser)
+	e.POST("user/delete", handler.DeleteUser)
 
-	e.POST("usertype/create", handler.CreateUserType)
-	e.GET("usertype/read", handler.ReadUserType)
-	e.POST("usertype/update", handler.UpdateUserType)
-	e.POST("usertype/delete", handler.DeleteUsertype)
+	e.POST("admin/usertype/create", handler.CreateUserType)
+	e.GET("admin/usertype/read", handler.ReadUserType)
+	e.POST("admin/usertype/update", handler.UpdateUserType)
+	e.POST("admin/usertype/delete", handler.DeleteUsertype)
 
-	e.POST("admin/grd/add/:id", handler.CreateGarden)
-	e.POST("admin/grd/add/loc/:id", handler.CreateLocation)
-	e.GET("admin/grd/shw", handler.ReadGarden)
-	e.GET("admin/grd/rmv/:aid/:id", handler.DeleteGarden)
+	e.POST("user/tag/create", handler.CreateTag)
+	e.GET("user/tag/read", handler.ReadTag)
+	e.POST("user/tag/update", handler.UpdateTag)
+	e.POST("user/tag/delete", handler.DeleteTag)
 
-	e.GET("farmer/tree/shw/", handler.ReadTree)
-	e.GET("farmer/cmt/shw/:farmerid/:treeid", handler.ReadComment)
-	e.POST("farmer/tree/add", handler.CreateTree)
-	e.GET("farmer/tree/rmv/:farmerid/:treeid", handler.DeleteTree)
+	e.POST("user/garden/create", handler.CreateGarden)
+	e.GET("user/garden/read", handler.ReadGarden)
+	e.POST("user/garden/update", handler.UpdateGarden)
+	e.POST("user/garden/delete", handler.DeleteGarden)
+
+	e.POST("user/loc/create", handler.CreateLocation)
+	e.GET("user/loc/read", handler.ReadLocation)
+	e.POST("user/loc/update", handler.UpdateLocation)
+	e.POST("user/loc/delete", handler.DeleteLocation)
+
+	e.POST("admin/gardentype/create", handler.CreateGardenType)
+	e.GET("admin/gardentype/read", handler.ReadGardenType)
+	e.POST("admin/gardentype/update", handler.UpdateGardenType)
+	e.POST("admin/gardentype/delete", handler.DeleteGardentype)
+
+	e.POST("user/tree/create", handler.CreateTree)
+	e.GET("user/tree/read", handler.ReadTree)
+	e.POST("user/tree/update", handler.UpdateTree)
+	e.POST("user/tree/delete", handler.DeleteTree)
+
+	e.POST("admin/treetype/create", handler.CreateTreeType)
+	e.GET("admin/treetype/read", handler.ReadTreeType)
+	e.POST("admin/treetype/update", handler.UpdateTreeType)
+	e.POST("admin/treetype/delete", handler.DeleteTreetype)
+
+	e.POST("user/comment/create", handler.CreateComment)
+	e.GET("user/comment/read", handler.ReadComment)
+	e.POST("user/comment/update", handler.UpdateTree)
+	e.POST("user/comment/delete", handler.DeleteTree)
 
 	e.Logger.Fatal(e.Start(":4000"))
 }
-
-//user
 
 func (m *UserHandler) SignIn(e echo.Context) error {
 	loginForm := new(domain.LoginForm)
@@ -75,19 +104,21 @@ func (m *UserHandler) SignUp(e echo.Context) error {
 }
 
 func (m *UserHandler) Account(e echo.Context) error {
-	username := e.QueryParam("username")
-	users, err := m.AUsecase.Account(username)
+	mp := make(map[string]string)
+	mp["uid"] = strconv.Itoa(int(jwt.UserID(e)))
+	mp["tp"] = e.QueryParam("type")
+	mp["username"] = e.QueryParam("username")
+	mp["id"] = e.QueryParam("id")
+	mp["pageNumber"] = e.QueryParam("page")
+	users, err := m.AUsecase.Account(mp)
 	if err != nil {
-		msg := &domain.AuthMessage{
-			Text: "User not found",
-		}
-		return e.JSON(200, msg)
+		return e.JSON(200, err)
 	}
 	return e.JSON(200, users)
 }
 
 func (m *UserHandler) UpdateUser(e echo.Context) error {
-	user := new(domain.User)
+	user := new(domain.UserForm)
 	if err := e.Bind(user); err != nil {
 		return err
 	}
@@ -129,7 +160,7 @@ func (m *UserHandler) ReadUserType(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateUserType(e echo.Context) error {
-	usertype := new(domain.UserType)
+	usertype := new(domain.UserTypeForm)
 	if err := e.Bind(usertype); err != nil {
 		return err
 	}
@@ -171,7 +202,7 @@ func (m *UserHandler) ReadTreeType(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateTreeType(e echo.Context) error {
-	treeType := new(domain.TreeType)
+	treeType := new(domain.TreeTypeForm)
 	if err := e.Bind(treeType); err != nil {
 		return err
 	}
@@ -205,7 +236,8 @@ func (m *UserHandler) CreateTag(e echo.Context) error {
 
 func (m *UserHandler) ReadTag(e echo.Context) error {
 	id := e.QueryParam("id")
-	t, err := m.AUsecase.ReadTag(id)
+	pageNumber := e.QueryParam("page")
+	t, err := m.AUsecase.ReadTag(id, pageNumber)
 	if err != nil {
 		return err
 	}
@@ -213,7 +245,7 @@ func (m *UserHandler) ReadTag(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateTag(e echo.Context) error {
-	tag := new(domain.Tag)
+	tag := new(domain.TagForm)
 	if err := e.Bind(tag); err != nil {
 		return err
 	}
@@ -247,7 +279,8 @@ func (m *UserHandler) CreateGarden(e echo.Context) error {
 
 func (m *UserHandler) ReadGarden(e echo.Context) error {
 	id := e.QueryParam("user_id")
-	g, err := m.AUsecase.ReadGarden(id)
+	pageNumber := e.QueryParam("page")
+	g, err := m.AUsecase.ReadGarden(id, pageNumber)
 	if err != nil {
 		return err
 	}
@@ -255,11 +288,14 @@ func (m *UserHandler) ReadGarden(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateGarden(e echo.Context) error {
-	garden := new(domain.Garden)
+	garden := new(domain.GardenForm)
+	if err := e.Bind(garden); err != nil {
+		return err
+	}
 	if err := m.AUsecase.UpdateGarden(garden); err != nil {
 		return err
 	}
-	return nil
+	return e.JSON(200, "Garden updated successfully")
 }
 
 func (m *UserHandler) DeleteGarden(e echo.Context) error {
@@ -286,7 +322,8 @@ func (m *UserHandler) CreateLocation(e echo.Context) error {
 
 func (m *UserHandler) ReadLocation(e echo.Context) error {
 	id := e.QueryParam("id")
-	t, err := m.AUsecase.ReadLocation(id)
+	pageNumber := e.QueryParam("page")
+	t, err := m.AUsecase.ReadLocation(id, pageNumber)
 	if err != nil {
 		return err
 	}
@@ -294,7 +331,7 @@ func (m *UserHandler) ReadLocation(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateLocation(e echo.Context) error {
-	loc := new(domain.GardenLocation)
+	loc := new(domain.GardenLocationForm)
 	if err := e.Bind(loc); err != nil {
 		return err
 	}
@@ -336,7 +373,7 @@ func (m *UserHandler) ReadGardenType(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateGardenType(e echo.Context) error {
-	gardenType := new(domain.GardenType)
+	gardenType := new(domain.GardenTypeForm)
 	if err := e.Bind(gardenType); err != nil {
 		return err
 	}
@@ -370,11 +407,12 @@ func (m *UserHandler) CreateTree(e echo.Context) error {
 
 func (m *UserHandler) ReadTree(e echo.Context) error {
 	mp := make(map[string]string)
+	pageNumber := e.QueryParam("page")
 	mp["id"] = e.QueryParam("id")
 	mp["type"] = e.QueryParam("type")
 	mp["garden_ID"] = e.QueryParam("garden_id")
 
-	tree, err := m.AUsecase.ReadTree(mp)
+	tree, err := m.AUsecase.ReadTree(mp, pageNumber)
 	if err != nil {
 		return err
 	}
@@ -382,7 +420,7 @@ func (m *UserHandler) ReadTree(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateTree(e echo.Context) error {
-	tree := new(domain.Tree)
+	tree := new(domain.TreeForm)
 	if err := e.Bind(tree); err != nil {
 		return err
 	}
@@ -417,11 +455,12 @@ func (m *UserHandler) CreateComment(e echo.Context) error {
 
 func (m *UserHandler) ReadComment(e echo.Context) error {
 	mp := make(map[string]string)
+	pageNumber := e.QueryParam("page")
 	mp["id"] = e.QueryParam("id")
 	mp["tree_id"] = e.QueryParam("tree_id")
 	mp["tag_id"] = e.QueryParam("tag_id")
 	mp["user_id"] = e.QueryParam("user_id")
-	comments, err := m.AUsecase.ReadComment(mp)
+	comments, err := m.AUsecase.ReadComment(mp, pageNumber)
 	if err != nil {
 		return err
 	}
@@ -429,7 +468,7 @@ func (m *UserHandler) ReadComment(e echo.Context) error {
 }
 
 func (m *UserHandler) UpdateComment(e echo.Context) error {
-	comment := new(domain.Comment)
+	comment := new(domain.CommentForm)
 	if err := e.Bind(comment); err != nil {
 		return err
 	}

@@ -10,9 +10,11 @@ require (
 
 require (
 	github.com/go-redis/redis v6.15.9+incompatible // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
+	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
 

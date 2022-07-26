@@ -6,6 +6,7 @@ import (
 	"garden/internal/user/repository/mysqlhandler"
 	"garden/internal/user/usecase"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -21,17 +22,19 @@ func main() {
 		log.Println("Connecting to database failed")
 	}
 	_ = Db.AutoMigrate(&domain.User{})
+	_ = Db.AutoMigrate(&domain.UserType{})
 	_ = Db.AutoMigrate(&domain.Garden{})
+	_ = Db.AutoMigrate(&domain.GardenType{})
 	_ = Db.AutoMigrate(&domain.Tree{})
+	_ = Db.AutoMigrate(&domain.TreeType{})
 	_ = Db.AutoMigrate(&domain.GardenLocation{})
 	_ = Db.AutoMigrate(&domain.Comment{})
 	_ = Db.AutoMigrate(&domain.Tag{})
+
 	r := echo.New()
-	//ur := mysqlhandler.NewMysqlUserRepository(Db)
-	ar := mysqlhandler.NewMysqlAdminRepository(Db)
-	//fr := mysqlhandler.NewMysqlFarmerRepository(Db)
-	//uu := usecase.NewUserUsecase(ur)
-	au := usecase.NewAdminUsecase(ar)
-	//fu := usecase.NewFarmerUsecase(fr)
+	ar := mysqlhandler.NewMysqlUserRepository(Db)
+	au := usecase.NewUserUsecase(ar)
+	r.Use(middleware.Logger())
+	r.Use(middleware.Recover())
 	httpdelivery.NewUserHandler(r, au)
 }
