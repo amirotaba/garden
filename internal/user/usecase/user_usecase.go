@@ -43,18 +43,26 @@ func (a *userUsecase) SignIn(form *domain.LoginForm) (domain.UserResponse, error
 	return u, nil
 }
 
-func (a *userUsecase) SignUp(user *domain.User) error {
+func (a *userUsecase) SignUp(user *domain.User) (int, error) {
 	if _, err := a.UserRepo.AccountUser(user.UserName); err == nil {
-		return errors.New("this username is taken")
+		return 403, errors.New("this username is taken")
 	}
 	if err := a.UserRepo.SignUp(user); err != nil {
-		return err
+		return 400, err
 	}
-	return nil
+	return 200, nil
 }
 
 func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, error) {
 	var list []domain.UserResponse
+	uidInt, err := strconv.Atoi(mp["uid"])
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if err != nil {
+		return []domain.UserResponse{}, err
+	}
+	if int(u.Type) > 4 {
+		return []domain.UserResponse{}, errors.New("you can't access to this page")
+	}
 	if mp["username"] != "" {
 		user, err := a.UserRepo.AccountUser(mp["username"])
 		if err != nil {
@@ -79,12 +87,10 @@ func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, erro
 		}
 		list = append(list, u)
 		return list, nil
-	}
-	uidInt, err := strconv.Atoi(mp["uid"])
-	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if err != nil {
-		return []domain.UserResponse{}, err
 	} else if mp["tp"] != "" {
+		if int(u.Type) != 1 {
+			return []domain.UserResponse{}, errors.New("you can't access to this page")
+		}
 		tpInt, err := strconv.Atoi(mp["tp"])
 		if err != nil {
 			return []domain.UserResponse{}, err
@@ -113,7 +119,7 @@ func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, erro
 		}
 		return list, nil
 	}
-	if u.Type != uint(1) {
+	if int(u.Type) != 1 {
 		return []domain.UserResponse{}, errors.New("you can't access to this page")
 	}
 	if mp["pageNumber"] == "" {
@@ -144,28 +150,61 @@ func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, erro
 	return list, nil
 }
 
-func (a *userUsecase) UpdateUser(user *domain.UserForm) error {
-	if err := a.UserRepo.UpdateUser(user); err != nil {
+func (a *userUsecase) UpdateUser(user *domain.UserForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
 		return err
 	}
-	return nil
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) == 1 || user.UserName == u.UserName {
+		if err := a.UserRepo.UpdateUser(user); err != nil {
+			return err
+		}
+		return nil
+
+	}
+	return errors.New("you can't access to this page")
 }
 
-func (a *userUsecase) DeleteUser(user *domain.User) error {
-	if err := a.UserRepo.DeleteUser(user.ID); err != nil {
+func (a *userUsecase) DeleteUser(user *domain.User, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
 		return err
 	}
-	return nil
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) == 1 || user.UserName == u.UserName {
+		if err := a.UserRepo.DeleteUser(user.ID); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("you can't access to this page")
 }
 
-func (a *userUsecase) CreateUserType(usertype *domain.UserType) error {
+func (a *userUsecase) CreateUserType(usertype *domain.UserType, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.CreateUserType(usertype); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) ReadUserType(id string) ([]domain.UserType, error) {
+func (a *userUsecase) ReadUserType(id string, uid string) ([]domain.UserType, error) {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return []domain.UserType{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return []domain.UserType{}, errors.New("you can't access to this page")
+	}
 	if id == "" {
 		t, err := a.UserRepo.ReadUserType()
 		if err != nil {
@@ -181,29 +220,64 @@ func (a *userUsecase) ReadUserType(id string) ([]domain.UserType, error) {
 	return t, nil
 }
 
-func (a *userUsecase) UpdateUserType(usertype *domain.UserTypeForm) error {
+func (a *userUsecase) UpdateUserType(usertype *domain.UserTypeForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.UpdateUserType(usertype); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) DeleteUserType(usertype *domain.UserType) error {
+func (a *userUsecase) DeleteUserType(usertype *domain.UserType, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.DeleteUserType(usertype.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) CreateTag(tag *domain.Tag) error {
+func (a *userUsecase) CreateTag(tag *domain.Tag, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.CreateTag(tag); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) ReadTag(id string, pageNumber string) ([]domain.Tag, error) {
+func (a *userUsecase) ReadTag(id string, pageNumber string, uid string) ([]domain.Tag, error) {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return []domain.Tag{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
 	if id == "" {
+		if int(u.Type) > 4 {
+			return []domain.Tag{}, errors.New("you can't access to this page")
+		}
+		if pageNumber == "" {
+			pageNumber = "1"
+		}
 		nInt, err := strconv.Atoi(pageNumber)
 		if err != nil {
 			return []domain.Tag{}, err
@@ -215,6 +289,9 @@ func (a *userUsecase) ReadTag(id string, pageNumber string) ([]domain.Tag, error
 		}
 		return t, nil
 	}
+	if int(u.Type) != 1 {
+		return []domain.Tag{}, errors.New("you can't access to this page")
+	}
 	idInt, err := strconv.Atoi(id)
 	t, err := a.UserRepo.ReadTagID(uint(idInt))
 	if err != nil {
@@ -223,56 +300,120 @@ func (a *userUsecase) ReadTag(id string, pageNumber string) ([]domain.Tag, error
 	return t, nil
 }
 
-func (a *userUsecase) UpdateTag(tag *domain.TagForm) error {
+func (a *userUsecase) UpdateTag(tag *domain.TagForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.UpdateTag(tag); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) DeleteTag(tag *domain.Tag) error {
+func (a *userUsecase) DeleteTag(tag *domain.Tag, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.DeleteTag(tag.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) CreateGarden(garden *domain.Garden) error {
+func (a *userUsecase) CreateGarden(garden *domain.Garden, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.CreateGarden(garden); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) ReadGarden(id string, pageNumber string) ([]domain.Garden, error) {
-	if id == "" {
-		nInt, err := strconv.Atoi(pageNumber)
+func (a *userUsecase) ReadGarden(mp map[string]string) ([]domain.Garden, error) {
+	uidInt, err := strconv.Atoi(mp["uid"])
+	if err != nil {
+		return []domain.Garden{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 4 {
+		return []domain.Garden{}, errors.New("you can't access to this page")
+	}
+	if mp["id"] != "" {
+		idInt, err := strconv.Atoi(mp["id"])
+		t, err := a.UserRepo.ReadGardenID(uint(idInt))
 		if err != nil {
 			return []domain.Garden{}, err
 		}
-		span := nInt * 10
-		t, err := a.UserRepo.ReadGarden(span)
+		return t, nil
+	} else if mp["userID"] != "" {
+		if int(u.Type) > 3 {
+			return []domain.Garden{}, errors.New("you can't access to this page")
+		}
+		idInt, err := strconv.Atoi(mp["userID"])
+		t, err := a.UserRepo.ReadGardenUID(uint(idInt))
 		if err != nil {
 			return []domain.Garden{}, err
 		}
 		return t, nil
 	}
-	idInt, err := strconv.Atoi(id)
-	t, err := a.UserRepo.ReadGardenID(uint(idInt))
+	if int(u.Type) != 1 {
+		return []domain.Garden{}, errors.New("you can't access to this page")
+	}
+	if mp["pageNumber"] == "" {
+		mp["pageNumber"] = "1"
+	}
+	nInt, err := strconv.Atoi(mp["pageNumber"])
+	if err != nil {
+		return []domain.Garden{}, err
+	}
+	span := nInt * 10
+	t, err := a.UserRepo.ReadGarden(span)
 	if err != nil {
 		return []domain.Garden{}, err
 	}
 	return t, nil
 }
 
-func (a *userUsecase) UpdateGarden(garden *domain.GardenForm) error {
+func (a *userUsecase) UpdateGarden(garden *domain.GardenForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.UpdateGarden(garden); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) DeleteGarden(garden *domain.Garden) error {
+func (a *userUsecase) DeleteGarden(garden *domain.Garden, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.DeleteGarden(garden.ID); err != nil {
 		return err
 	}
@@ -282,15 +423,34 @@ func (a *userUsecase) DeleteGarden(garden *domain.Garden) error {
 	return nil
 }
 
-func (a *userUsecase) CreateLocation(location *domain.GardenLocation) error {
+func (a *userUsecase) CreateLocation(location *domain.GardenLocation, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.CreateLocation(location); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) ReadLocation(id string, pageNumber string) ([]domain.GardenLocation, error) {
-	if id == "" {
+func (a *userUsecase) ReadLocation(gid string, pageNumber string, uid string) ([]domain.GardenLocation, error) {
+	if gid == "" {
+		uidInt, err := strconv.Atoi(uid)
+		if err != nil {
+			return []domain.GardenLocation{}, err
+		}
+		u, err := a.UserRepo.AccountID(uint(uidInt))
+		if int(u.Type) > 3 {
+			return []domain.GardenLocation{}, errors.New("you can't access to this page")
+		}
+		if pageNumber == "" {
+			pageNumber = "1"
+		}
 		nInt, err := strconv.Atoi(pageNumber)
 		if err != nil {
 			return []domain.GardenLocation{}, err
@@ -302,7 +462,15 @@ func (a *userUsecase) ReadLocation(id string, pageNumber string) ([]domain.Garde
 		}
 		return t, nil
 	}
-	idInt, err := strconv.Atoi(id)
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return []domain.GardenLocation{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return []domain.GardenLocation{}, errors.New("you can't access to this page")
+	}
+	idInt, err := strconv.Atoi(gid)
 	t, err := a.UserRepo.ReadLocationID(uint(idInt))
 	if err != nil {
 		return []domain.GardenLocation{}, err
@@ -310,28 +478,60 @@ func (a *userUsecase) ReadLocation(id string, pageNumber string) ([]domain.Garde
 	return t, nil
 }
 
-func (a *userUsecase) UpdateLocation(loc *domain.GardenLocationForm) error {
+func (a *userUsecase) UpdateLocation(loc *domain.GardenLocationForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.UpdateLocation(loc); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) DeleteLocation(loc *domain.GardenLocation) error {
+func (a *userUsecase) DeleteLocation(loc *domain.GardenLocation, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.DeleteLocation(loc.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) CreateGardenType(gardenType *domain.GardenType) error {
+func (a *userUsecase) CreateGardenType(gardenType *domain.GardenType, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.CreateGardenType(gardenType); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) ReadGardenType(id string) ([]domain.GardenType, error) {
+func (a *userUsecase) ReadGardenType(id string, uid string) ([]domain.GardenType, error) {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return []domain.GardenType{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return []domain.GardenType{}, errors.New("you can't access to this page")
+	}
 	if id == "" {
 		t, err := a.UserRepo.ReadGardenType()
 		if err != nil {
@@ -347,21 +547,45 @@ func (a *userUsecase) ReadGardenType(id string) ([]domain.GardenType, error) {
 	return t, nil
 }
 
-func (a *userUsecase) UpdateGardenType(gardenType *domain.GardenTypeForm) error {
+func (a *userUsecase) UpdateGardenType(gardenType *domain.GardenTypeForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.UpdateGardenType(gardenType); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) DeleteGardenType(gardenType *domain.GardenType) error {
+func (a *userUsecase) DeleteGardenType(gardenType *domain.GardenType, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.DeleteGardenType(gardenType.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) CreateTree(tree *domain.Tree) error {
+func (a *userUsecase) CreateTree(tree *domain.Tree, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	//tree.Qr = make a QRCode
 	if err := a.UserRepo.CreateTree(tree); err != nil {
 		return err
@@ -369,7 +593,15 @@ func (a *userUsecase) CreateTree(tree *domain.Tree) error {
 	return nil
 }
 
-func (a *userUsecase) ReadTree(m map[string]string, pageNumber string) ([]domain.Tree, error) {
+func (a *userUsecase) ReadTree(m map[string]string, pageNumber, uid string) ([]domain.Tree, error) {
+	uidInt, err := strconv.Atoi(m["uid"])
+	if err != nil {
+		return []domain.Tree{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 4 {
+		return []domain.Tree{}, errors.New("you can't access to this page")
+	}
 	for i := range m {
 		if m[i] != "" {
 			if i != "type" {
@@ -384,6 +616,9 @@ func (a *userUsecase) ReadTree(m map[string]string, pageNumber string) ([]domain
 				}
 				return t, nil
 			}
+			if pageNumber == "" {
+				pageNumber = "1"
+			}
 			nInt, err := strconv.Atoi(pageNumber)
 			if err != nil {
 				return []domain.Tree{}, err
@@ -395,6 +630,12 @@ func (a *userUsecase) ReadTree(m map[string]string, pageNumber string) ([]domain
 			}
 			return t, nil
 		}
+	}
+	if int(u.Type) != 1 {
+		return []domain.Tree{}, errors.New("you can't access to this page")
+	}
+	if pageNumber == "" {
+		pageNumber = "1"
 	}
 	nInt, err := strconv.Atoi(pageNumber)
 	if err != nil {
@@ -408,44 +649,60 @@ func (a *userUsecase) ReadTree(m map[string]string, pageNumber string) ([]domain
 	return tree, nil
 }
 
-func (a *userUsecase) UpdateTree(tree *domain.TreeForm) error {
+func (a *userUsecase) UpdateTree(tree *domain.TreeForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.UpdateTree(tree); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) DeleteTree(tree *domain.Tree) error {
-	//tIdInt, err := strconv.Atoi(treeid)
-	//if err != nil {
-	//	return err
-	//}
-	//fIdInt, err := strconv.Atoi(farmerid)
-	//if err != nil {
-	//	return err
-	//}
-	//tIdUint, fIdUint := uint(tIdInt), uint(fIdInt)
-	//t, err := a.UserRepo.SearchTree(tIdUint)
-	//if err != nil {
-	//	return err
-	//}
-	//if t.FarmerID != fIdUint {
-	//	return errors.New("this tree isn't yours")
-	//}
+func (a *userUsecase) DeleteTree(tree *domain.Tree, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 3 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.DeleteTree(tree.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) CreateTreeType(treeType *domain.TreeType) error {
+func (a *userUsecase) CreateTreeType(treeType *domain.TreeType, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.CreateTreeType(treeType); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) ReadTreeType(id string) ([]domain.TreeType, error) {
+func (a *userUsecase) ReadTreeType(id string, uid string) ([]domain.TreeType, error) {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return []domain.TreeType{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return []domain.TreeType{}, errors.New("you can't access to this page")
+	}
 	if id == "" {
 		t, err := a.UserRepo.ReadTreeType()
 		if err != nil {
@@ -461,30 +718,65 @@ func (a *userUsecase) ReadTreeType(id string) ([]domain.TreeType, error) {
 	return t, nil
 }
 
-func (a *userUsecase) UpdateTreeType(treeType *domain.TreeTypeForm) error {
+func (a *userUsecase) UpdateTreeType(treeType *domain.TreeTypeForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.UpdateTreeType(treeType); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) DeleteTreeType(tree *domain.TreeType) error {
+func (a *userUsecase) DeleteTreeType(tree *domain.TreeType, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) != 1 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.DeleteTreeType(tree.ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) CreateComment(comment *domain.Comment) error {
+func (a *userUsecase) CreateComment(comment *domain.Comment, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 4 {
+		return errors.New("you can't access to this page")
+	}
 	if err := a.UserRepo.CreateComment(comment); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *userUsecase) ReadComment(m map[string]string, pageNumber string) ([]domain.Comment, error) {
+func (a *userUsecase) ReadComment(m map[string]string, pageNumber, uid string) ([]domain.Comment, error) {
+	uidInt, err := strconv.Atoi(m["uid"])
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if int(u.Type) > 4 {
+		return []domain.Comment{}, errors.New("you can't access to this page")
+	}
 	for i := range m {
 		if m[i] != "" {
+			if pageNumber == "" {
+				pageNumber = "1"
+			}
 			nInt, err := strconv.Atoi(pageNumber)
 			if err != nil {
 				return []domain.Comment{}, err
@@ -502,6 +794,12 @@ func (a *userUsecase) ReadComment(m map[string]string, pageNumber string) ([]dom
 			return t, nil
 		}
 	}
+	if int(u.Type) != 1 {
+		return []domain.Comment{}, errors.New("you can't access to this page")
+	}
+	if pageNumber == "" {
+		pageNumber = "1"
+	}
 	nInt, err := strconv.Atoi(pageNumber)
 	if err != nil {
 		return []domain.Comment{}, err
@@ -514,16 +812,34 @@ func (a *userUsecase) ReadComment(m map[string]string, pageNumber string) ([]dom
 	return c, nil
 }
 
-func (a *userUsecase) UpdateComment(comment *domain.CommentForm) error {
-	if err := a.UserRepo.UpdateComment(comment); err != nil {
+func (a *userUsecase) UpdateComment(comment *domain.CommentForm, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
 		return err
 	}
-	return nil
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	c, err := a.UserRepo.ReadCommentID(comment.ID, "id", 1)
+	if int(u.Type) == 1 || int(c[0].ID) == uidInt {
+		if err := a.UserRepo.UpdateComment(comment); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("you can't access to this page")
 }
 
-func (a *userUsecase) DeleteComment(comment *domain.Comment) error {
-	if err := a.UserRepo.DeleteComment(comment.ID); err != nil {
+func (a *userUsecase) DeleteComment(comment *domain.Comment, uid string) error {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
 		return err
 	}
-	return nil
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	c, err := a.UserRepo.ReadCommentID(comment.ID, "id", 1)
+	if int(u.Type) == 1 || int(c[0].ID) == uidInt {
+		if err := a.UserRepo.DeleteComment(comment.ID); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("you can't access to this page")
 }

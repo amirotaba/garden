@@ -170,6 +170,14 @@ func (m *mysqlUserRepository) ReadGarden(n int) ([]domain.Garden, error) {
 
 func (m *mysqlUserRepository) ReadGardenID(id uint) ([]domain.Garden, error) {
 	var garden []domain.Garden
+	if err := m.Conn.Where("id = ?", id).First(&garden).Error; err != nil {
+		return []domain.Garden{}, err
+	}
+	return garden, nil
+}
+
+func (m *mysqlUserRepository) ReadGardenUID(id uint) ([]domain.Garden, error) {
+	var garden []domain.Garden
 	if err := m.Conn.Where("user_id = ?", id).First(&garden).Error; err != nil {
 		return []domain.Garden{}, err
 	}
@@ -208,7 +216,7 @@ func (m *mysqlUserRepository) ReadLocation(n int) ([]domain.GardenLocation, erro
 
 func (m *mysqlUserRepository) ReadLocationID(id uint) ([]domain.GardenLocation, error) {
 	var loc []domain.GardenLocation
-	if err := m.Conn.Where("id = ?", id).First(&loc).Error; err != nil {
+	if err := m.Conn.Where("garden_id = ?", id).First(&loc).Error; err != nil {
 		return []domain.GardenLocation{}, err
 	}
 	return loc, nil
