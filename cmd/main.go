@@ -6,7 +6,6 @@ import (
 	"garden/internal/user/repository/mysqlhandler"
 	"garden/internal/user/usecase"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -34,7 +33,7 @@ func main() {
 	r := echo.New()
 	ar := mysqlhandler.NewMysqlUserRepository(Db)
 	au := usecase.NewUserUsecase(ar)
-	r.Use(middleware.Logger())
-	r.Use(middleware.Recover())
+	//r.Use(middleware.Logger())
+	//r.Use(middleware.Recover())
 	httpdelivery.NewUserHandler(r, au)
 }

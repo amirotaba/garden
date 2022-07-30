@@ -13,7 +13,7 @@ type User struct {
 	PassWord   string `json:"pass_word"`
 	Email      string `json:"email"`
 	IsActive   bool   `json:"is_active"`
-	AccessList []uint `json:"access_list"`
+	AccessList string `json:"access_list"`
 }
 
 type UserForm struct {
@@ -212,6 +212,7 @@ type UserUsecase interface {
 	SignUp(newuser *User) (int, error)
 	SignIn(form *LoginForm) (UserResponse, error)
 	Account(mp map[string]string) ([]UserResponse, error)
+	UserAccount(mp map[string]string) (UserResponse, error)
 	UpdateUser(user *UserForm, uid string) error
 	DeleteUser(user *User, uid string) error
 
@@ -231,7 +232,8 @@ type UserUsecase interface {
 	DeleteTreeType(treetype *TreeType, uid string) error
 
 	CreateTag(tag *Tag, uid string) error
-	ReadTag(id string, pageNumber string, uid string) ([]Tag, error)
+	ReadTag(pageNumber string, uid string) ([]Tag, error)
+	ReadTagID(id string) ([]Tag, error)
 	UpdateTag(tag *TagForm, uid string) error
 	DeleteTag(tag *Tag, uid string) error
 
@@ -246,11 +248,12 @@ type UserUsecase interface {
 	DeleteGardenType(gardenType *GardenType, uid string) error
 
 	CreateTree(tree *Tree, uid string) error
-	ReadTree(mp map[string]string, pageNumber, uid string) ([]Tree, error)
+	ReadTree(mp map[string]string) ([]Tree, error)
+	ReadTreeUser(mp map[string]string) ([]Tree, error)
 	UpdateTree(tree *TreeForm, uid string) error
 	DeleteTree(tree *Tree, uid string) error
 
-	CreateComment(comment *Comment, uid string) error
+	CreateComment(comment *Comment) error
 	ReadComment(mp map[string]string, pageNumber, uid string) ([]Comment, error)
 	UpdateComment(comment *CommentForm, uid string) error
 	DeleteComment(comment *Comment, uid string) error
@@ -259,7 +262,6 @@ type UserUsecase interface {
 	ReadService(uid string) ([]Service, error)
 	UpdateService(usertype *ServiceForm, uid string) error
 	DeleteService(service *Service, uid string) error
-	ReadTagID(id string, number string, uid string) ([]Tag, error)
 }
 
 type UserRepository interface {
@@ -273,7 +275,7 @@ type UserRepository interface {
 	SignUp(newuser *User) error
 	SignIn(form *LoginForm) (User, error)
 	Account(n int) ([]User, error)
-	AccountUser(username string) (User, error)
+	AccountUsername(username string) (User, error)
 	AccountID(id uint) (User, error)
 	AccountType(n int, tp uint) ([]User, error)
 	UpdateUser(user *UserForm) error
@@ -312,7 +314,7 @@ type UserRepository interface {
 	CreateTree(tree *Tree) error
 	ReadTree(n int) ([]Tree, error)
 	ReadTreeID(id uint, q string) ([]Tree, error)
-	ReadTreeByType(t string, n int) ([]Tree, error)
+	ReadTreeByType(t uint, n int) ([]Tree, error)
 	UpdateTree(tree *TreeForm) error
 	DeleteTree(id uint) error
 

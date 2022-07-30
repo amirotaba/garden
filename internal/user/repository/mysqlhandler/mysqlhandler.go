@@ -23,7 +23,7 @@ func (m *mysqlUserRepository) Account(n int) ([]domain.User, error) {
 	return user, nil
 }
 
-func (m *mysqlUserRepository) AccountUser(username string) (domain.User, error) {
+func (m *mysqlUserRepository) AccountUsername(username string) (domain.User, error) {
 	var user domain.User
 	if err := m.Conn.Where("user_name = ?", username).First(&user).Error; err != nil {
 		return domain.User{}, err
@@ -298,7 +298,7 @@ func (m *mysqlUserRepository) ReadTreeID(id uint, q string) ([]domain.Tree, erro
 	return tType, nil
 }
 
-func (m *mysqlUserRepository) ReadTreeByType(t string, n int) ([]domain.Tree, error) {
+func (m *mysqlUserRepository) ReadTreeByType(t uint, n int) ([]domain.Tree, error) {
 	var tType []domain.Tree
 	if err := m.Conn.Limit(n).Where("type = ?", t).First(&tType).Error; err != nil {
 		return []domain.Tree{}, err

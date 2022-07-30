@@ -5,6 +5,7 @@ import (
 	"garden/internal/domain"
 	"garden/pkg/jwt"
 	"strconv"
+	"strings"
 )
 
 type userUsecase struct {
@@ -44,7 +45,7 @@ func (a *userUsecase) SignIn(form *domain.LoginForm) (domain.UserResponse, error
 }
 
 func (a *userUsecase) SignUp(user *domain.User) (int, error) {
-	if _, err := a.UserRepo.AccountUser(user.UserName); err == nil {
+	if _, err := a.UserRepo.AccountUsername(user.UserName); err == nil {
 		return 403, errors.New("this username is taken")
 	}
 	if err := a.UserRepo.SignUp(user); err != nil {
@@ -53,10 +54,64 @@ func (a *userUsecase) SignUp(user *domain.User) (int, error) {
 	return 200, nil
 }
 
-func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, error) {
-	var list []domain.UserResponse
+func (a *userUsecase) UserAccount(mp map[string]string) (domain.UserResponse, error) {
 	var boolean bool
 	uidInt, err := strconv.Atoi(mp["uid"])
+	if err != nil {
+		return domain.UserResponse{}, err
+	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/useraccount")
+	if err != nil {
+		return domain.UserResponse{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if err != nil {
+		return domain.UserResponse{}, err
+	}
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return domain.UserResponse{}, err
+		}
+		if uint(i) == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
+		return domain.UserResponse{}, errors.New("you can't access to this page")
+	}
+	if mp["username"] != "" {
+		user, err := a.UserRepo.AccountUsername(mp["username"])
+		if err != nil {
+			return domain.UserResponse{}, err
+		}
+		u := domain.UserResponse{
+			UserName: user.UserName,
+		}
+		return u, nil
+	}
+	idInt, err := strconv.Atoi(mp["id"])
+	if err != nil {
+		return domain.UserResponse{}, err
+	}
+	user, err := a.UserRepo.AccountID(uint(idInt))
+	if err != nil {
+		return domain.UserResponse{}, err
+	}
+	o := domain.UserResponse{
+		UserName: user.UserName,
+	}
+	return o, nil
+}
+
+func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, error) {
+	var boolean bool
+	var list []domain.UserResponse
+	uidInt, err := strconv.Atoi(mp["uid"])
+	if err != nil {
+		return []domain.UserResponse{}, err
+	}
 	SID, err := a.UserRepo.ReadServiceUrl("user/account")
 	if err != nil {
 		return []domain.UserResponse{}, err
@@ -65,42 +120,20 @@ func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, erro
 	if err != nil {
 		return []domain.UserResponse{}, err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return []domain.UserResponse{}, err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
 	if !boolean {
 		return []domain.UserResponse{}, errors.New("you can't access to this page")
 	}
-	if mp["username"] != "" {
-		user, err := a.UserRepo.AccountUser(mp["username"])
-		if err != nil {
-			return []domain.UserResponse{}, err
-		}
-		u := domain.UserResponse{
-			UserName: user.UserName,
-		}
-		list = append(list, u)
-		return list, nil
-	} else if mp["id"] != "" {
-		idInt, err := strconv.Atoi(mp["id"])
-		if err != nil {
-			return []domain.UserResponse{}, err
-		}
-		user, err := a.UserRepo.AccountID(uint(idInt))
-		if err != nil {
-			return []domain.UserResponse{}, err
-		}
-		u := domain.UserResponse{
-			UserName: user.UserName,
-		}
-		list = append(list, u)
-		return list, nil
-	} else if mp["tp"] != "" {
-		if int(u.Type) != 1 {
-			return []domain.UserResponse{}, errors.New("you can't access to this page")
-		}
+	if mp["tp"] != "" {
 		tpInt, err := strconv.Atoi(mp["tp"])
 		if err != nil {
 			return []domain.UserResponse{}, err
@@ -127,10 +160,6 @@ func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, erro
 			}
 			list = append(list, u)
 		}
-		return list, nil
-	}
-	if int(u.Type) != 1 {
-		return []domain.UserResponse{}, errors.New("you can't access to this page")
 	}
 	if mp["pageNumber"] == "" {
 		mp["pageNumber"] = "1"
@@ -141,9 +170,6 @@ func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, erro
 	}
 	span := nInt * 10
 	user, err := a.UserRepo.Account(span)
-	if err != nil {
-		return []domain.UserResponse{}, err
-	}
 	for i := range user {
 		var t domain.TypeStruct
 		t.ID = user[i].Type
@@ -166,7 +192,7 @@ func (a *userUsecase) UpdateUser(user *domain.UserForm, uid string) error {
 	if err != nil {
 		return err
 	}
-	SID, err := a.UserRepo.ReadServiceUrl("user/account")
+	SID, err := a.UserRepo.ReadServiceUrl("user/update")
 	if err != nil {
 		return err
 	}
@@ -174,8 +200,13 @@ func (a *userUsecase) UpdateUser(user *domain.UserForm, uid string) error {
 	if err != nil {
 		return err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -194,7 +225,7 @@ func (a *userUsecase) DeleteUser(user *domain.User, uid string) error {
 	if err != nil {
 		return err
 	}
-	SID, err := a.UserRepo.ReadServiceUrl("user/account")
+	SID, err := a.UserRepo.ReadServiceUrl("user/delete")
 	if err != nil {
 		return err
 	}
@@ -202,8 +233,13 @@ func (a *userUsecase) DeleteUser(user *domain.User, uid string) error {
 	if err != nil {
 		return err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -230,8 +266,13 @@ func (a *userUsecase) CreateUserType(usertype *domain.UserType, uid string) erro
 	if err != nil {
 		return err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -258,8 +299,13 @@ func (a *userUsecase) ReadUserType(id string, uid string) ([]domain.UserType, er
 	if err != nil {
 		return []domain.UserType{}, err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return []domain.UserType{}, err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -295,8 +341,13 @@ func (a *userUsecase) UpdateUserType(usertype *domain.UserTypeForm, uid string) 
 	if err != nil {
 		return err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -323,8 +374,13 @@ func (a *userUsecase) DeleteUserType(usertype *domain.UserType, uid string) erro
 	if err != nil {
 		return err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -351,8 +407,13 @@ func (a *userUsecase) CreateTag(tag *domain.Tag, uid string) error {
 	if err != nil {
 		return err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -379,8 +440,13 @@ func (a *userUsecase) ReadTag(pageNumber string, uid string) ([]domain.Tag, erro
 	if err != nil {
 		return []domain.Tag{}, err
 	}
-	for _, v := range u.AccessList {
-		if v == SID.ID {
+	List := strings.Split(u.AccessList, ",")
+	for _, v := range List {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return []domain.Tag{}, err
+		}
+		if uint(i) == SID.ID {
 			boolean = true
 		}
 	}
@@ -850,12 +916,25 @@ func (a *userUsecase) DeleteGardenType(gardenType *domain.GardenType, uid string
 }
 
 func (a *userUsecase) CreateTree(tree *domain.Tree, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/tree/create")
+	if err != nil {
+		return err
+	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) > 3 {
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return errors.New("you can't access to this page")
 	}
 	//tree.Qr = make a QRCode
@@ -865,69 +944,107 @@ func (a *userUsecase) CreateTree(tree *domain.Tree, uid string) error {
 	return nil
 }
 
-func (a *userUsecase) ReadTree(m map[string]string, pageNumber, uid string) ([]domain.Tree, error) {
-	uidInt, err := strconv.Atoi(uid)
+func (a *userUsecase) ReadTreeUser(m map[string]string) ([]domain.Tree, error) {
+	if m["garden_ID"] != "" {
+		idInt, err := strconv.Atoi(m["garden_ID"])
+		if err != nil {
+			return []domain.Tree{}, err
+		}
+		t, err := a.UserRepo.ReadTreeID(uint(idInt), "garden_id = ?")
+		if err != nil {
+			return []domain.Tree{}, err
+		}
+		return t, nil
+	}
+	idInt, err := strconv.Atoi(m["id"])
+	if err != nil {
+		return []domain.Tree{}, err
+	}
+	t, err := a.UserRepo.ReadTreeID(uint(idInt), "id = ?")
+	if err != nil {
+		return []domain.Tree{}, err
+	}
+	return t, nil
+}
+
+func (a *userUsecase) ReadTree(m map[string]string) ([]domain.Tree, error) {
+	var boolean bool
+	uidInt, err := strconv.Atoi(m["uid"])
 	if err != nil {
 		return []domain.Tree{}, err
 	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) > 4 {
-		return []domain.Tree{}, errors.New("you can't access to this page")
+	if err != nil {
+		return []domain.Tree{}, err
 	}
-	for i := range m {
-		if m[i] != "" {
-			if i != "type" {
-				idInt, err := strconv.Atoi(m[i])
-				if err != nil {
-					return []domain.Tree{}, err
-				}
-				q := i + " = ?"
-				t, err := a.UserRepo.ReadTreeID(uint(idInt), q)
-				if err != nil {
-					return []domain.Tree{}, err
-				}
-				return t, nil
-			}
-			if pageNumber == "" {
-				pageNumber = "1"
-			}
-			nInt, err := strconv.Atoi(pageNumber)
-			if err != nil {
-				return []domain.Tree{}, err
-			}
-			span := nInt * 10
-			t, err := a.UserRepo.ReadTreeByType(m[i], span)
-			if err != nil {
-				return []domain.Tree{}, err
-			}
-			return t, nil
+	SID, err := a.UserRepo.ReadServiceUrl("user/tree/read")
+	if err != nil {
+		return []domain.Tree{}, err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
 		}
 	}
-	if int(u.Type) != 1 {
+	if !boolean {
 		return []domain.Tree{}, errors.New("you can't access to this page")
 	}
-	if pageNumber == "" {
-		pageNumber = "1"
+	if m["pageNumber"] == "" {
+		m["pageNumber"] = "1"
 	}
-	nInt, err := strconv.Atoi(pageNumber)
+	nInt, err := strconv.Atoi(m["pageNumber"])
 	if err != nil {
 		return []domain.Tree{}, err
 	}
 	span := nInt * 10
-	tree, err := a.UserRepo.ReadTree(span)
+	if m["garden_ID"] != "" {
+		idInt, err := strconv.Atoi(m["garden_ID"])
+		if err != nil {
+			return []domain.Tree{}, err
+		}
+		t, err := a.UserRepo.ReadTreeID(uint(idInt), "garden_id = ?")
+		if err != nil {
+			return []domain.Tree{}, err
+		}
+		return t, nil
+	} else if m["type"] != "" {
+		idInt, err := strconv.Atoi(m["type"])
+		if err != nil {
+			return []domain.Tree{}, err
+		}
+		t, err := a.UserRepo.ReadTreeByType(uint(idInt), span)
+		if err != nil {
+			return []domain.Tree{}, err
+		}
+		return t, nil
+	}
+	t, err := a.UserRepo.ReadTree(span)
 	if err != nil {
 		return []domain.Tree{}, err
 	}
-	return tree, nil
+	return t, nil
 }
 
 func (a *userUsecase) UpdateTree(tree *domain.TreeForm, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) > 3 {
+	if err != nil {
+		return err
+	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/tree/update")
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return errors.New("you can't access to this page")
 	}
 	if err := a.UserRepo.UpdateTree(tree); err != nil {
@@ -937,12 +1054,25 @@ func (a *userUsecase) UpdateTree(tree *domain.TreeForm, uid string) error {
 }
 
 func (a *userUsecase) DeleteTree(tree *domain.Tree, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) > 3 {
+	if err != nil {
+		return err
+	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/tree/delete")
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return errors.New("you can't access to this page")
 	}
 	if err := a.UserRepo.DeleteTree(tree.ID); err != nil {
@@ -1072,15 +1202,7 @@ func (a *userUsecase) DeleteTreeType(tree *domain.TreeType, uid string) error {
 	return nil
 }
 
-func (a *userUsecase) CreateComment(comment *domain.Comment, uid string) error {
-	uidInt, err := strconv.Atoi(uid)
-	if err != nil {
-		return err
-	}
-	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) > 4 {
-		return errors.New("you can't access to this page")
-	}
+func (a *userUsecase) CreateComment(comment *domain.Comment) error {
 	if err := a.UserRepo.CreateComment(comment); err != nil {
 		return err
 	}
@@ -1088,14 +1210,6 @@ func (a *userUsecase) CreateComment(comment *domain.Comment, uid string) error {
 }
 
 func (a *userUsecase) ReadComment(m map[string]string, pageNumber, uid string) ([]domain.Comment, error) {
-	uidInt, err := strconv.Atoi(uid)
-	if err != nil {
-		return []domain.Comment{}, err
-	}
-	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) > 4 {
-		return []domain.Comment{}, errors.New("you can't access to this page")
-	}
 	for i := range m {
 		if m[i] != "" {
 			if pageNumber == "" {
@@ -1118,7 +1232,25 @@ func (a *userUsecase) ReadComment(m map[string]string, pageNumber, uid string) (
 			return t, nil
 		}
 	}
-	if int(u.Type) != 1 {
+	var boolean bool
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/comment/read")
+	if err != nil {
+		return []domain.Comment{}, err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return []domain.Comment{}, errors.New("you can't access to this page")
 	}
 	if pageNumber == "" {
@@ -1137,13 +1269,26 @@ func (a *userUsecase) ReadComment(m map[string]string, pageNumber, uid string) (
 }
 
 func (a *userUsecase) UpdateComment(comment *domain.CommentForm, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if err != nil {
+		return err
+	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/tree/update")
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
 	c, err := a.UserRepo.ReadCommentID(comment.ID, "id", 1)
-	if int(u.Type) == 1 || int(c[0].ID) == uidInt {
+	if boolean || int(c[0].ID) == uidInt {
 		if err := a.UserRepo.UpdateComment(comment); err != nil {
 			return err
 		}
@@ -1153,13 +1298,26 @@ func (a *userUsecase) UpdateComment(comment *domain.CommentForm, uid string) err
 }
 
 func (a *userUsecase) DeleteComment(comment *domain.Comment, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
+	if err != nil {
+		return err
+	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/tree/update")
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
 	c, err := a.UserRepo.ReadCommentID(comment.ID, "id", 1)
-	if int(u.Type) == 1 || int(c[0].ID) == uidInt {
+	if boolean || int(c[0].ID) == uidInt {
 		if err := a.UserRepo.DeleteComment(comment.ID); err != nil {
 			return err
 		}
@@ -1169,12 +1327,25 @@ func (a *userUsecase) DeleteComment(comment *domain.Comment, uid string) error {
 }
 
 func (a *userUsecase) CreateService(service *domain.Service, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/service/create")
+	if err != nil {
+		return err
+	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) != 1 {
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return errors.New("you can't access to this page")
 	}
 	if err := a.UserRepo.CreateService(service); err != nil {
@@ -1184,12 +1355,25 @@ func (a *userUsecase) CreateService(service *domain.Service, uid string) error {
 }
 
 func (a *userUsecase) ReadService(uid string) ([]domain.Service, error) {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return []domain.Service{}, err
 	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/service/read")
+	if err != nil {
+		return []domain.Service{}, err
+	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) != 1 {
+	if err != nil {
+		return []domain.Service{}, err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return []domain.Service{}, errors.New("you can't access to this page")
 	}
 	t, err := a.UserRepo.ReadService()
@@ -1200,12 +1384,25 @@ func (a *userUsecase) ReadService(uid string) ([]domain.Service, error) {
 }
 
 func (a *userUsecase) UpdateService(service *domain.ServiceForm, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/service/update")
+	if err != nil {
+		return err
+	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) != 1 {
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return errors.New("you can't access to this page")
 	}
 	if err := a.UserRepo.UpdateService(service); err != nil {
@@ -1215,12 +1412,25 @@ func (a *userUsecase) UpdateService(service *domain.ServiceForm, uid string) err
 }
 
 func (a *userUsecase) DeleteService(service *domain.Service, uid string) error {
+	var boolean bool
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return err
 	}
+	SID, err := a.UserRepo.ReadServiceUrl("user/service/create")
+	if err != nil {
+		return err
+	}
 	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if int(u.Type) != 1 {
+	if err != nil {
+		return err
+	}
+	for _, v := range u.AccessList {
+		if v == SID.ID {
+			boolean = true
+		}
+	}
+	if !boolean {
 		return errors.New("you can't access to this page")
 	}
 	if err := a.UserRepo.DeleteService(service.ID); err != nil {

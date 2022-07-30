@@ -22,9 +22,10 @@ func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
 	res := e.Group("user/")
 	res.Use(middleware.JWTWithConfig(jwt.Config))
 
-	e.POST("/signup", handler.SignUp)
-	e.POST("/signin", handler.SignIn)
+	e.POST("signup", handler.SignUp)
+	e.POST("signin", handler.SignIn)
 	res.GET("account", handler.Account)
+	res.GET("useraccount", handler.UserAccount)
 	res.PATCH("update", handler.UpdateUser)
 	res.DELETE("delete", handler.DeleteUser)
 
@@ -35,13 +36,12 @@ func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
 
 	res.POST("tag/create", handler.CreateTag)
 	res.GET("tag/read", handler.ReadTag)
-	//
+	res.GET("tag/readID", handler.ReadTagID)
 	res.PATCH("tag/update", handler.UpdateTag)
 	res.DELETE("tag/delete", handler.DeleteTag)
 
 	res.POST("garden/create", handler.CreateGarden)
 	res.GET("garden/read", handler.ReadGarden)
-	//
 	res.PATCH("garden/update", handler.UpdateGarden)
 	res.DELETE("garden/delete", handler.DeleteGarden)
 
@@ -53,17 +53,18 @@ func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
 	res.POST("gardentype/create", handler.CreateGardenType)
 	res.GET("gardentype/read", handler.ReadGardenType)
 	res.PATCH("gardentype/update", handler.UpdateGardenType)
-	res.DELETE("gardentype/delete", handler.DeleteGardentype)
+	res.DELETE("gardentype/delete", handler.DeleteGardenType)
 
 	res.POST("tree/create", handler.CreateTree)
 	res.GET("tree/read", handler.ReadTree)
+	res.GET("tree/readUser", handler.ReadTreeUser)
 	res.PATCH("tree/update", handler.UpdateTree)
 	res.DELETE("tree/delete", handler.DeleteTree)
 
 	res.POST("treetype/create", handler.CreateTreeType)
 	res.GET("treetype/read", handler.ReadTreeType)
 	res.PATCH("treetype/update", handler.UpdateTreeType)
-	res.DELETE("treetype/delete", handler.DeleteTreetype)
+	res.DELETE("treetype/delete", handler.DeleteTreeType)
 
 	res.POST("comment/create", handler.CreateComment)
 	res.GET("comment/read", handler.ReadComment)
@@ -115,10 +116,20 @@ func (m *UserHandler) Account(e echo.Context) error {
 	mp := make(map[string]string)
 	mp["uid"] = strconv.Itoa(int(jwt.UserID(e)))
 	mp["tp"] = e.QueryParam("type")
-	mp["username"] = e.QueryParam("username")
-	mp["id"] = e.QueryParam("id")
 	mp["pageNumber"] = e.QueryParam("page")
 	users, err := m.AUsecase.Account(mp)
+	if err != nil {
+		return e.JSON(403, err.Error())
+	}
+	return e.JSON(200, users)
+}
+
+func (m *UserHandler) UserAccount(e echo.Context) error {
+	mp := make(map[string]string)
+	mp["uid"] = strconv.Itoa(int(jwt.UserID(e)))
+	mp["username"] = e.QueryParam("username")
+	mp["id"] = e.QueryParam("id")
+	users, err := m.AUsecase.UserAccount(mp)
 	if err != nil {
 		return e.JSON(403, err.Error())
 	}
@@ -218,10 +229,8 @@ func (m *UserHandler) ReadTag(e echo.Context) error {
 }
 
 func (m *UserHandler) ReadTagID(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	id := e.QueryParam("id")
-	pageNumber := e.QueryParam("page")
-	t, err := m.AUsecase.ReadTagID(id, pageNumber, uid)
+	t, err := m.AUsecase.ReadTagID(id)
 	if err != nil {
 		return e.JSON(403, err.Error())
 	}
@@ -382,7 +391,7 @@ func (m *UserHandler) UpdateGardenType(e echo.Context) error {
 	return e.JSON(200, "Tree type updated successfully")
 }
 
-func (m *UserHandler) DeleteGardentype(e echo.Context) error {
+func (m *UserHandler) DeleteGardenType(e echo.Context) error {
 	uid := strconv.Itoa(int(jwt.UserID(e)))
 	gardenType := new(domain.GardenType)
 	if err := e.Bind(gardenType); err != nil {
@@ -408,13 +417,22 @@ func (m *UserHandler) CreateTree(e echo.Context) error {
 
 func (m *UserHandler) ReadTree(e echo.Context) error {
 	mp := make(map[string]string)
-	pageNumber := e.QueryParam("page")
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	mp["id"] = e.QueryParam("id")
-	mp["type"] = e.QueryParam("type")
+	mp["uid"] = strconv.Itoa(int(jwt.UserID(e)))
 	mp["garden_ID"] = e.QueryParam("garden_id")
+	mp["type"] = e.QueryParam("type")
+	mp["pageNumber"] = e.QueryParam("page")
+	tree, err := m.AUsecase.ReadTree(mp)
+	if err != nil {
+		return e.JSON(403, err.Error())
+	}
+	return e.JSON(200, tree)
+}
 
-	tree, err := m.AUsecase.ReadTree(mp, pageNumber, uid)
+func (m *UserHandler) ReadTreeUser(e echo.Context) error {
+	mp := make(map[string]string)
+	mp["id"] = e.QueryParam("id")
+	mp["garden_ID"] = e.QueryParam("garden_id")
+	tree, err := m.AUsecase.ReadTreeUser(mp)
 	if err != nil {
 		return e.JSON(403, err.Error())
 	}
@@ -479,7 +497,7 @@ func (m *UserHandler) UpdateTreeType(e echo.Context) error {
 	return e.JSON(200, "Tree type updated successfully")
 }
 
-func (m *UserHandler) DeleteTreetype(e echo.Context) error {
+func (m *UserHandler) DeleteTreeType(e echo.Context) error {
 	uid := strconv.Itoa(int(jwt.UserID(e)))
 	treeType := new(domain.TreeType)
 	if err := e.Bind(treeType); err != nil {
@@ -492,12 +510,11 @@ func (m *UserHandler) DeleteTreetype(e echo.Context) error {
 }
 
 func (m *UserHandler) CreateComment(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	form := new(domain.Comment)
 	if err := e.Bind(form); err != nil {
 		return e.JSON(403, err.Error())
 	}
-	if err := m.AUsecase.CreateComment(form, uid); err != nil {
+	if err := m.AUsecase.CreateComment(form); err != nil {
 		return e.JSON(403, err.Error())
 	}
 	return e.JSON(200, "Comment added successfully")
@@ -586,12 +603,3 @@ func (m *UserHandler) DeleteService(e echo.Context) error {
 	}
 	return e.JSON(200, "User type deleted successfully")
 }
-
-//func CreateService(e *echo.Echo) (*echo.Router, error) {
-//	data := e.Router()
-//	//if err != nil {
-//	//	return []byte{}, err
-//	//}
-//	return data, nil
-//
-//}
