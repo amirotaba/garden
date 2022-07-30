@@ -404,3 +404,41 @@ func (m *mysqlUserRepository) UserType(id uint) (string, error) {
 	}
 	return uType.Name, nil
 }
+
+func (m *mysqlUserRepository) CreateService(service *domain.Service) error {
+	if err := m.Conn.Create(service).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *mysqlUserRepository) ReadService() ([]domain.Service, error) {
+	var service []domain.Service
+	if err := m.Conn.Find(&service).Error; err != nil {
+		return []domain.Service{}, err
+	}
+	return service, nil
+}
+
+func (m *mysqlUserRepository) ReadServiceUrl(url string) (domain.Service, error) {
+	var service domain.Service
+	if err := m.Conn.Where("url = ?", url).First(&service).Error; err != nil {
+		return domain.Service{}, err
+	}
+	return service, nil
+}
+
+func (m *mysqlUserRepository) UpdateService(service *domain.ServiceForm) error {
+	if err := m.Conn.Model(domain.Service{}).Where("id = ?", service.ID).Updates(service).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *mysqlUserRepository) DeleteService(id uint) error {
+	var uType domain.Service
+	if err := m.Conn.Where("id = ?", id).Delete(&uType).Error; err != nil {
+		return err
+	}
+	return nil
+}

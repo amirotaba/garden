@@ -16,57 +16,64 @@ func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
 	handler := &UserHandler{
 		AUsecase: au,
 	}
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	//e.Use(middleware.Logger())
+	//e.Use(middleware.Recover())
 
-	res := e.Group("res/")
+	res := e.Group("user/")
 	res.Use(middleware.JWTWithConfig(jwt.Config))
 
-	e.POST("user/signup", handler.SignUp)
-	e.POST("user/signin", handler.SignIn)
-	res.GET("user/account", handler.Account)
-	res.POST("user/update", handler.UpdateUser)
-	res.POST("user/delete", handler.DeleteUser)
+	e.POST("/signup", handler.SignUp)
+	e.POST("/signin", handler.SignIn)
+	res.GET("account", handler.Account)
+	res.PATCH("update", handler.UpdateUser)
+	res.DELETE("delete", handler.DeleteUser)
 
-	res.POST("admin/usertype/create", handler.CreateUserType)
-	res.GET("admin/usertype/read", handler.ReadUserType)
-	res.POST("admin/usertype/update", handler.UpdateUserType)
-	res.POST("admin/usertype/delete", handler.DeleteUsertype)
+	res.POST("usertype/create", handler.CreateUserType)
+	res.GET("usertype/read", handler.ReadUserType)
+	res.PATCH("usertype/update", handler.UpdateUserType)
+	res.DELETE("usertype/delete", handler.DeleteUsertype)
 
-	res.POST("user/tag/create", handler.CreateTag)
-	res.GET("user/tag/read", handler.ReadTag)
-	res.POST("user/tag/update", handler.UpdateTag)
-	res.POST("user/tag/delete", handler.DeleteTag)
+	res.POST("tag/create", handler.CreateTag)
+	res.GET("tag/read", handler.ReadTag)
+	//
+	res.PATCH("tag/update", handler.UpdateTag)
+	res.DELETE("tag/delete", handler.DeleteTag)
 
-	res.POST("user/garden/create", handler.CreateGarden)
-	res.GET("user/garden/read", handler.ReadGarden)
-	res.POST("user/garden/update", handler.UpdateGarden)
-	res.POST("user/garden/delete", handler.DeleteGarden)
+	res.POST("garden/create", handler.CreateGarden)
+	res.GET("garden/read", handler.ReadGarden)
+	//
+	res.PATCH("garden/update", handler.UpdateGarden)
+	res.DELETE("garden/delete", handler.DeleteGarden)
 
-	res.POST("user/loc/create", handler.CreateLocation)
-	res.GET("user/loc/read", handler.ReadLocation)
-	res.POST("user/loc/update", handler.UpdateLocation)
-	res.POST("user/loc/delete", handler.DeleteLocation)
+	res.POST("loc/create", handler.CreateLocation)
+	res.GET("loc/read", handler.ReadLocation)
+	res.PATCH("loc/update", handler.UpdateLocation)
+	res.DELETE("loc/delete", handler.DeleteLocation)
 
-	res.POST("admin/gardentype/create", handler.CreateGardenType)
-	res.GET("admin/gardentype/read", handler.ReadGardenType)
-	res.POST("admin/gardentype/update", handler.UpdateGardenType)
-	res.POST("admin/gardentype/delete", handler.DeleteGardentype)
+	res.POST("gardentype/create", handler.CreateGardenType)
+	res.GET("gardentype/read", handler.ReadGardenType)
+	res.PATCH("gardentype/update", handler.UpdateGardenType)
+	res.DELETE("gardentype/delete", handler.DeleteGardentype)
 
-	res.POST("user/tree/create", handler.CreateTree)
-	res.GET("user/tree/read", handler.ReadTree)
-	res.POST("user/tree/update", handler.UpdateTree)
-	res.POST("user/tree/delete", handler.DeleteTree)
+	res.POST("tree/create", handler.CreateTree)
+	res.GET("tree/read", handler.ReadTree)
+	res.PATCH("tree/update", handler.UpdateTree)
+	res.DELETE("tree/delete", handler.DeleteTree)
 
-	res.POST("admin/treetype/create", handler.CreateTreeType)
-	res.GET("admin/treetype/read", handler.ReadTreeType)
-	res.POST("admin/treetype/update", handler.UpdateTreeType)
-	res.POST("admin/treetype/delete", handler.DeleteTreetype)
+	res.POST("treetype/create", handler.CreateTreeType)
+	res.GET("treetype/read", handler.ReadTreeType)
+	res.PATCH("treetype/update", handler.UpdateTreeType)
+	res.DELETE("treetype/delete", handler.DeleteTreetype)
 
-	res.POST("user/comment/create", handler.CreateComment)
-	res.GET("user/comment/read", handler.ReadComment)
-	res.POST("user/comment/update", handler.UpdateComment)
-	res.POST("user/comment/delete", handler.DeleteComment)
+	res.POST("comment/create", handler.CreateComment)
+	res.GET("comment/read", handler.ReadComment)
+	res.PATCH("comment/update", handler.UpdateComment)
+	res.DELETE("comment/delete", handler.DeleteComment)
+
+	res.POST("service/create", handler.CreateService)
+	res.GET("service/read", handler.ReadService)
+	res.PATCH("service/update", handler.UpdateService)
+	res.DELETE("service/delete", handler.DeleteService)
 
 	e.Logger.Fatal(e.Start(":4000"))
 }
@@ -202,9 +209,19 @@ func (m *UserHandler) CreateTag(e echo.Context) error {
 
 func (m *UserHandler) ReadTag(e echo.Context) error {
 	uid := strconv.Itoa(int(jwt.UserID(e)))
+	pageNumber := e.QueryParam("page")
+	t, err := m.AUsecase.ReadTag(pageNumber, uid)
+	if err != nil {
+		return e.JSON(403, err.Error())
+	}
+	return e.JSON(200, t)
+}
+
+func (m *UserHandler) ReadTagID(e echo.Context) error {
+	uid := strconv.Itoa(int(jwt.UserID(e)))
 	id := e.QueryParam("id")
 	pageNumber := e.QueryParam("page")
-	t, err := m.AUsecase.ReadTag(id, pageNumber, uid)
+	t, err := m.AUsecase.ReadTagID(id, pageNumber, uid)
 	if err != nil {
 		return e.JSON(403, err.Error())
 	}
@@ -524,3 +541,57 @@ func (m *UserHandler) DeleteComment(e echo.Context) error {
 	}
 	return e.JSON(200, "Comment has been removed.")
 }
+
+func (m *UserHandler) CreateService(e echo.Context) error {
+	uid := strconv.Itoa(int(jwt.UserID(e)))
+	service := new(domain.Service)
+	if err := e.Bind(service); err != nil {
+		return e.JSON(403, err.Error())
+	}
+	if err := m.AUsecase.CreateService(service, uid); err != nil {
+		return e.JSON(403, err.Error())
+	}
+	return e.JSON(200, "Service added successfully")
+}
+
+func (m *UserHandler) ReadService(e echo.Context) error {
+	uid := strconv.Itoa(int(jwt.UserID(e)))
+	t, err := m.AUsecase.ReadService(uid)
+	if err != nil {
+		return e.JSON(403, err.Error())
+	}
+	return e.JSON(200, t)
+}
+
+func (m *UserHandler) UpdateService(e echo.Context) error {
+	uid := strconv.Itoa(int(jwt.UserID(e)))
+	service := new(domain.ServiceForm)
+	if err := e.Bind(service); err != nil {
+		return e.JSON(403, err.Error())
+	}
+	if err := m.AUsecase.UpdateService(service, uid); err != nil {
+		return e.JSON(403, err.Error())
+	}
+	return e.JSON(200, "User type updated successfully")
+}
+
+func (m *UserHandler) DeleteService(e echo.Context) error {
+	uid := strconv.Itoa(int(jwt.UserID(e)))
+	service := new(domain.Service)
+	if err := e.Bind(service); err != nil {
+		return e.JSON(403, err.Error())
+	}
+	if err := m.AUsecase.DeleteService(service, uid); err != nil {
+		return e.JSON(403, err.Error())
+	}
+	return e.JSON(200, "User type deleted successfully")
+}
+
+//func CreateService(e *echo.Echo) (*echo.Router, error) {
+//	data := e.Router()
+//	//if err != nil {
+//	//	return []byte{}, err
+//	//}
+//	return data, nil
+//
+//}

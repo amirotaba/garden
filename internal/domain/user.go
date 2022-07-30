@@ -7,12 +7,13 @@ import (
 
 type User struct {
 	gorm.Model
-	Type     uint   `json:"type"`
-	Name     string `json:"name"`
-	UserName string `json:"user_name"`
-	PassWord string `json:"pass_word"`
-	Email    string `json:"email"`
-	IsActive bool   `json:"is_active"`
+	Type       uint   `json:"type"`
+	Name       string `json:"name"`
+	UserName   string `json:"user_name"`
+	PassWord   string `json:"pass_word"`
+	Email      string `json:"email"`
+	IsActive   bool   `json:"is_active"`
+	AccessList []uint `json:"access_list"`
 }
 
 type UserForm struct {
@@ -167,6 +168,18 @@ type TagForm struct {
 	Image          string `json:"image"`
 }
 
+type Service struct {
+	gorm.Model
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type ServiceForm struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
 type LoginForm struct {
 	Type     uint   `json:"type"`
 	Username string `json:"user_name"`
@@ -241,6 +254,12 @@ type UserUsecase interface {
 	ReadComment(mp map[string]string, pageNumber, uid string) ([]Comment, error)
 	UpdateComment(comment *CommentForm, uid string) error
 	DeleteComment(comment *Comment, uid string) error
+
+	CreateService(service *Service, uid string) error
+	ReadService(uid string) ([]Service, error)
+	UpdateService(usertype *ServiceForm, uid string) error
+	DeleteService(service *Service, uid string) error
+	ReadTagID(id string, number string, uid string) ([]Tag, error)
 }
 
 type UserRepository interface {
@@ -303,5 +322,11 @@ type UserRepository interface {
 	UpdateComment(comment *CommentForm) error
 	DeleteComment(id uint) error
 
-	UserType(t uint) (string, error)
+	CreateService(service *Service) error
+	ReadService() ([]Service, error)
+	ReadServiceUrl(url string) (Service, error)
+	UpdateService(service *ServiceForm) error
+	DeleteService(id uint) error
+
+	UserType(id uint) (string, error)
 }

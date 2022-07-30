@@ -30,7 +30,7 @@ func main() {
 	_ = Db.AutoMigrate(&domain.GardenLocation{})
 	_ = Db.AutoMigrate(&domain.Comment{})
 	_ = Db.AutoMigrate(&domain.Tag{})
-
+	_ = Db.AutoMigrate(&domain.Service{})
 	r := echo.New()
 	ar := mysqlhandler.NewMysqlUserRepository(Db)
 	au := usecase.NewUserUsecase(ar)
