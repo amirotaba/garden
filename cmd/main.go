@@ -33,7 +33,7 @@ func main() {
 	r := echo.New()
 	ar := mysqlhandler.NewMysqlUserRepository(Db)
 	au := usecase.NewUserUsecase(ar)
-	//r.Use(middleware.Logger())
-	//r.Use(middleware.Recover())
+	//e.Use(middleware.Logger())
+	//e.Use(middleware.Recover())
 	httpdelivery.NewUserHandler(r, au)
 }
