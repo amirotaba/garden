@@ -51,7 +51,7 @@ func (a *userUsecase) SignUp(user *domain.User) (int, error) {
 	if err := a.UserRepo.SignUp(user); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) Account(mp map[string]string) ([]domain.UserResponse, int, error) {
@@ -226,7 +226,7 @@ func (a *userUsecase) UpdateUser(user *domain.UserForm, uid string) (int, error)
 		if err := a.UserRepo.UpdateUser(user); err != nil {
 			return 400, err
 		}
-		return 200, nil
+		return 201, nil
 	}
 	return 403, errors.New("you can't access to this page")
 }
@@ -263,7 +263,7 @@ func (a *userUsecase) DeleteUser(user *domain.User, uid string) (int, error) {
 		if err := a.UserRepo.DeleteUser(user.ID); err != nil {
 			return 400, err
 		}
-		return 200, nil
+		return 204, nil
 	}
 	return 403, errors.New("you can't access to this page")
 }
@@ -302,7 +302,7 @@ func (a *userUsecase) CreateUserType(usertype *domain.UserType, uid string) (int
 	if err := a.UserRepo.CreateUserType(usertype); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadUserType(id string, uid string) ([]domain.UserType, int, error) {
@@ -385,7 +385,7 @@ func (a *userUsecase) UpdateUserType(usertype *domain.UserTypeForm, uid string) 
 	if err := a.UserRepo.UpdateUserType(usertype); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) UpdateAccess(access *domain.AccessForm, uid string) (int, error) {
@@ -427,7 +427,7 @@ func (a *userUsecase) UpdateAccess(access *domain.AccessForm, uid string) (int, 
 	if err := a.UserRepo.UpdateUserType(out); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteUserType(usertype *domain.UserType, uid string) (int, error) {
@@ -464,7 +464,7 @@ func (a *userUsecase) DeleteUserType(usertype *domain.UserType, uid string) (int
 	if err := a.UserRepo.DeleteUserType(usertype.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }
 
 func (a *userUsecase) CreateTag(tag *domain.Tag, uid string) (int, error) {
@@ -501,7 +501,7 @@ func (a *userUsecase) CreateTag(tag *domain.Tag, uid string) (int, error) {
 	if err := a.UserRepo.CreateTag(tag); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadTag(pageNumber string, uid string) ([]domain.Tag, int, error) {
@@ -593,7 +593,7 @@ func (a *userUsecase) UpdateTag(tag *domain.TagForm, uid string) (int, error) {
 	if err := a.UserRepo.UpdateTag(tag); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteTag(tag *domain.Tag, uid string) (int, error) {
@@ -630,7 +630,7 @@ func (a *userUsecase) DeleteTag(tag *domain.Tag, uid string) (int, error) {
 	if err := a.UserRepo.DeleteTag(tag.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }
 
 func (a *userUsecase) CreateGarden(garden *domain.Garden, uid string) (int, error) {
@@ -667,7 +667,7 @@ func (a *userUsecase) CreateGarden(garden *domain.Garden, uid string) (int, erro
 	if err := a.UserRepo.CreateGarden(garden); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadGarden(mp map[string]string) ([]domain.Garden, int, error) {
@@ -765,7 +765,7 @@ func (a *userUsecase) UpdateGarden(garden *domain.GardenForm, uid string) (int, 
 	if err := a.UserRepo.UpdateGarden(garden); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteGarden(garden *domain.Garden, uid string) (int, error) {
@@ -805,7 +805,7 @@ func (a *userUsecase) DeleteGarden(garden *domain.Garden, uid string) (int, erro
 	if err := a.UserRepo.DeleteLocation(garden.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }
 
 func (a *userUsecase) CreateLocation(location *domain.GardenLocation, uid string) (int, error) {
@@ -842,7 +842,7 @@ func (a *userUsecase) CreateLocation(location *domain.GardenLocation, uid string
 	if err := a.UserRepo.CreateLocation(location); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadLocation(gid string, pageNumber string, uid string) ([]domain.GardenLocation, int, error) {
@@ -933,7 +933,7 @@ func (a *userUsecase) UpdateLocation(loc *domain.GardenLocationForm, uid string)
 	if err := a.UserRepo.UpdateLocation(loc); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteLocation(loc *domain.GardenLocation, uid string) (int, error) {
@@ -970,7 +970,7 @@ func (a *userUsecase) DeleteLocation(loc *domain.GardenLocation, uid string) (in
 	if err := a.UserRepo.DeleteLocation(loc.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }
 
 func (a *userUsecase) CreateGardenType(gardenType *domain.GardenType, uid string) (int, error) {
@@ -1007,7 +1007,7 @@ func (a *userUsecase) CreateGardenType(gardenType *domain.GardenType, uid string
 	if err := a.UserRepo.CreateGardenType(gardenType); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadGardenType(id string, uid string) ([]domain.GardenType, int, error) {
@@ -1083,7 +1083,7 @@ func (a *userUsecase) UpdateGardenType(gardenType *domain.GardenTypeForm, uid st
 	if err := a.UserRepo.UpdateGardenType(gardenType); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteGardenType(gardenType *domain.GardenType, uid string) (int, error) {
@@ -1120,7 +1120,7 @@ func (a *userUsecase) DeleteGardenType(gardenType *domain.GardenType, uid string
 	if err := a.UserRepo.DeleteGardenType(gardenType.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }
 
 func (a *userUsecase) CreateTree(tree *domain.Tree, uid string) (int, error) {
@@ -1158,7 +1158,7 @@ func (a *userUsecase) CreateTree(tree *domain.Tree, uid string) (int, error) {
 	if err := a.UserRepo.CreateTree(tree); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadTreeUser(m map[string]string) ([]domain.Tree, int, error) {
@@ -1285,7 +1285,7 @@ func (a *userUsecase) UpdateTree(tree *domain.TreeForm, uid string) (int, error)
 	if err := a.UserRepo.UpdateTree(tree); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteTree(tree *domain.Tree, uid string) (int, error) {
@@ -1322,7 +1322,7 @@ func (a *userUsecase) DeleteTree(tree *domain.Tree, uid string) (int, error) {
 	if err := a.UserRepo.DeleteTree(tree.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }
 
 func (a *userUsecase) CreateTreeType(treeType *domain.TreeType, uid string) (int, error) {
@@ -1359,7 +1359,7 @@ func (a *userUsecase) CreateTreeType(treeType *domain.TreeType, uid string) (int
 	if err := a.UserRepo.CreateTreeType(treeType); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadTreeType(id string, uid string) ([]domain.TreeType, int, error) {
@@ -1442,7 +1442,7 @@ func (a *userUsecase) UpdateTreeType(treeType *domain.TreeTypeForm, uid string) 
 	if err := a.UserRepo.UpdateTreeType(treeType); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteTreeType(tree *domain.TreeType, uid string) (int, error) {
@@ -1479,14 +1479,14 @@ func (a *userUsecase) DeleteTreeType(tree *domain.TreeType, uid string) (int, er
 	if err := a.UserRepo.DeleteTreeType(tree.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }
 
 func (a *userUsecase) CreateComment(comment *domain.Comment) (int, error) {
 	if err := a.UserRepo.CreateComment(comment); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadComment(m map[string]string, pageNumber, uid string) ([]domain.Comment, int, error) {
@@ -1590,7 +1590,7 @@ func (a *userUsecase) UpdateComment(comment *domain.CommentForm, uid string) (in
 		if err := a.UserRepo.UpdateComment(comment); err != nil {
 			return 400, err
 		}
-		return 200, nil
+		return 201, nil
 	}
 	return 403, errors.New("you can't access to this page")
 }
@@ -1628,46 +1628,46 @@ func (a *userUsecase) DeleteComment(comment *domain.Comment, uid string) (int, e
 		if err := a.UserRepo.DeleteComment(comment.ID); err != nil {
 			return 400, err
 		}
-		return 200, nil
+		return 204, nil
 	}
 	return 403, errors.New("you can't access to this page")
 }
 
-func (a *userUsecase) CreateService(service *domain.Service, uid string) (int, error) {
-	var boolean bool
-	uidInt, err := strconv.Atoi(uid)
-	if err != nil {
-		return 400, err
-	}
-	SID, err := a.UserRepo.ReadServiceUrl("/user/service/create")
-	if err != nil {
-		return 400, err
-	}
-	u, err := a.UserRepo.AccountID(uint(uidInt))
-	if err != nil {
-		return 400, err
-	}
-	t, err := a.UserRepo.ReadUserTypeID(u.Type)
-	if err != nil {
-		return 400, err
-	}
-	List := strings.Split(t[0].AccessList, ",")
-	for _, v := range List {
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			return 400, err
-		}
-		if uint(i) == SID.ID {
-			boolean = true
-		}
-	}
-	if !boolean {
-		return 403, errors.New("you can't access to this page")
-	}
+func (a *userUsecase) CreateService(service *domain.Service) (int, error) {
+	//var boolean bool
+	//uidInt, err := strconv.Atoi(uid)
+	//if err != nil {
+	//	return 400, err
+	//}
+	//SID, err := a.UserRepo.ReadServiceUrl("/user/service/create")
+	//if err != nil {
+	//	return 400, err
+	//}
+	//u, err := a.UserRepo.AccountID(uint(uidInt))
+	//if err != nil {
+	//	return 400, err
+	//}
+	//t, err := a.UserRepo.ReadUserTypeID(u.Type)
+	//if err != nil {
+	//	return 400, err
+	//}
+	//List := strings.Split(t[0].AccessList, ",")
+	//for _, v := range List {
+	//	i, err := strconv.Atoi(v)
+	//	if err != nil {
+	//		return 400, err
+	//	}
+	//	if uint(i) == SID.ID {
+	//		boolean = true
+	//	}
+	//}
+	//if !boolean {
+	//	return 403, errors.New("you can't access to this page")
+	//}
 	if err := a.UserRepo.CreateService(service); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) ReadService(uid string) ([]domain.Service, int, error) {
@@ -1742,7 +1742,7 @@ func (a *userUsecase) UpdateService(service *domain.ServiceForm, uid string) (in
 	if err := a.UserRepo.UpdateService(service); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 201, nil
 }
 
 func (a *userUsecase) DeleteService(service *domain.Service, uid string) (int, error) {
@@ -1779,5 +1779,5 @@ func (a *userUsecase) DeleteService(service *domain.Service, uid string) (int, e
 	if err := a.UserRepo.DeleteService(service.ID); err != nil {
 		return 400, err
 	}
-	return 200, nil
+	return 204, nil
 }

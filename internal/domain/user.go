@@ -177,8 +177,9 @@ type TagForm struct {
 
 type Service struct {
 	gorm.Model
-	Name string `json:"name"`
-	Url  string `json:"url"`
+	Name   string `json:"name"`
+	Url    string `json:"url"`
+	Method string `json:"method"`
 }
 
 type ServiceForm struct {
@@ -266,7 +267,7 @@ type UserUsecase interface {
 	UpdateComment(comment *CommentForm, uid string) (int, error)
 	DeleteComment(comment *Comment, uid string) (int, error)
 
-	CreateService(service *Service, uid string) (int, error)
+	CreateService(service *Service) (int, error)
 	ReadService(uid string) ([]Service, int, error)
 	UpdateService(usertype *ServiceForm, uid string) (int, error)
 	DeleteService(service *Service, uid string) (int, error)

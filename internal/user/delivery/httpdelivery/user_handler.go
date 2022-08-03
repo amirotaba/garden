@@ -75,6 +75,8 @@ func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
 	res.PATCH("service/update", handler.UpdateService)
 	res.DELETE("service/delete", handler.DeleteService)
 
+	handler.addRoutes(e)
+
 	e.Logger.Fatal(e.Start(":4000"))
 }
 
@@ -598,12 +600,11 @@ func (m *UserHandler) DeleteComment(e echo.Context) error {
 }
 
 func (m *UserHandler) CreateService(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	service := new(domain.Service)
 	if err := e.Bind(service); err != nil {
 		return e.JSON(400, err.Error())
 	}
-	code, err := m.AUsecase.CreateService(service, uid)
+	code, err := m.AUsecase.CreateService(service)
 	if err != nil {
 		return e.JSON(code, err.Error())
 	}
@@ -643,4 +644,16 @@ func (m *UserHandler) DeleteService(e echo.Context) error {
 		return e.JSON(code, err.Error())
 	}
 	return e.JSON(code, "User type deleted successfully")
+}
+
+func (m *UserHandler) addRoutes(e *echo.Echo) {
+	r := e.Routes()
+	for i := range r {
+		service := &domain.Service{
+			Name:   r[i].Name,
+			Url:    r[i].Path,
+			Method: r[i].Method,
+		}
+		_, _ = m.AUsecase.CreateService(service)
+	}
 }
