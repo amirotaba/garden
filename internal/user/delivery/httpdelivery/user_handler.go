@@ -9,10 +9,10 @@ import (
 )
 
 type UserHandler struct {
-	AUsecase domain.UserUsecase
+	AUsecase domain.UserUseCase
 }
 
-func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
+func NewUserHandler(e *echo.Echo, au domain.UserUseCase) {
 	handler := &UserHandler{
 		AUsecase: au,
 	}
@@ -27,11 +27,11 @@ func NewUserHandler(e *echo.Echo, au domain.UserUsecase) {
 	res.PATCH("update", handler.UpdateUser)
 	res.DELETE("delete", handler.DeleteUser)
 
-	res.POST("usertype/create", handler.CreateUserType)
-	res.GET("usertype/read", handler.ReadUserType)
-	res.PATCH("usertype/update", handler.UpdateUserType)
-	res.PATCH("usertype/addAccess", handler.AddAccess)
-	res.DELETE("usertype/delete", handler.DeleteUsertype)
+	res.POST("userType/create", handler.CreateUserType)
+	res.GET("userType/read", handler.ReadUserType)
+	res.PATCH("userType/update", handler.UpdateUserType)
+	res.PATCH("userType/addAccess", handler.AddAccess)
+	res.DELETE("userType/delete", handler.DeleteUsertype)
 
 	res.POST("tag/create", handler.CreateTag)
 	res.GET("tag/read", handler.ReadTag)
@@ -444,7 +444,7 @@ func (m *UserHandler) CreateTree(e echo.Context) error {
 	if err != nil {
 		return e.JSON(code, err.Error())
 	}
-	return e.JSON(code, "Tree Added successfuly.")
+	return e.JSON(code, "Tree Added successfully.")
 }
 
 func (m *UserHandler) ReadTree(e echo.Context) error {

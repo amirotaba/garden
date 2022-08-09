@@ -29,7 +29,7 @@ type UserType struct {
 	gorm.Model
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	AccessList  string `json:"access_list" gorm:"default:3,11,15,19,27,34,35,43"`
+	AccessList  string `json:"access_list"`
 }
 
 type UserTypeForm struct {
@@ -40,8 +40,8 @@ type UserTypeForm struct {
 }
 
 type AccessForm struct {
-	ID     uint `json:"id"`
-	TypeID uint `json:"type_id"`
+	ID     uint   `json:"id"`
+	TypeID string `json:"type_id"`
 }
 
 type Garden struct {
@@ -216,8 +216,8 @@ type SignUpMessage struct {
 	Email    string
 }
 
-type UserUsecase interface {
-	SignUp(newuser *User) (int, error)
+type UserUseCase interface {
+	SignUp(newUser *User) (int, error)
 	SignIn(form *LoginForm) (UserResponse, int, error)
 	Account(mp map[string]string) ([]UserResponse, int, error)
 	UserAccount(mp map[string]string) (UserResponse, int, error)
@@ -238,7 +238,7 @@ type UserUsecase interface {
 	CreateTreeType(treeType *TreeType, uid string) (int, error)
 	ReadTreeType(id string, uid string) ([]TreeType, int, error)
 	UpdateTreeType(treeType *TreeTypeForm, uid string) (int, error)
-	DeleteTreeType(treetype *TreeType, uid string) (int, error)
+	DeleteTreeType(treeType *TreeType, uid string) (int, error)
 
 	CreateTag(tag *Tag, uid string) (int, error)
 	ReadTag(pageNumber string, uid string) ([]Tag, int, error)
@@ -281,7 +281,7 @@ type UserRepository interface {
 	UpdateGarden(garden *GardenForm) error
 	DeleteGarden(id uint) error
 
-	SignUp(newuser *User) error
+	SignUp(newUser *User) error
 	SignIn(form *LoginForm) (User, error)
 	Account(n int) ([]User, error)
 	AccountUsername(username string) (User, error)
@@ -290,7 +290,7 @@ type UserRepository interface {
 	UpdateUser(user *UserForm) error
 	DeleteUser(id uint) error
 
-	CreateTreeType(treetype *TreeType) error
+	CreateTreeType(treeType *TreeType) error
 	ReadTreeType() ([]TreeType, error)
 	ReadTreeTypeID(u uint) ([]TreeType, error)
 	UpdateTreeType(treeType *TreeTypeForm) error
@@ -341,3 +341,5 @@ type UserRepository interface {
 
 	UserType(id uint) (string, error)
 }
+
+//1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 , 10 , 11 , 12 , 13 , 14 , 15 , 16 , 17 , 18 , 19 , 20 , 21 , 22 , 23 , 24 , 25 , 26 , 27 , 28 , 29 , 30 , 31 , 32 , 33 , 34 , 35 , 36 , 37 , 38 , 39 , 40 , 41 , 42 , 43 , 44 , 45 , 46 , 47 , 48 , 49 , 50 , 51 , 52 , 53 , 54 , 55 , 56 , 57 , 58 , 59 , 60 , 61 , 62 , 63 , 64 , 65 , 66 , 67 , 68 , 69 , 70 , 71 , 72 , 73 , 74 , 75 , 76 , 77 , 78 , 79 , 80 , 81 , 82 , 83 , 84 , 85 , 86 , 87 , 88 , 89 , 90 , 91 , 92 , 93 , 94 , 95 , 96 , 97 , 98 , 99 , 100

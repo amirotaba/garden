@@ -32,7 +32,7 @@ func main() {
 	_ = Db.AutoMigrate(&domain.Service{})
 	r := echo.New()
 	ar := mysqlhandler.NewMysqlUserRepository(Db)
-	au := usecase.NewUserUsecase(ar)
+	au := usecase.NewUserUseCase(ar)
 	//e.Use(middleware.Logger())
 	//e.Use(middleware.Recover())
 	httpdelivery.NewUserHandler(r, au)
