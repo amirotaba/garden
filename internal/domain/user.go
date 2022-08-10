@@ -1,8 +1,9 @@
 package domain
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -216,35 +217,74 @@ type SignUpMessage struct {
 	Email    string
 }
 
+type AccountForm struct {
+	Uid        string
+	Tp         string
+	PageNumber string
+}
+
+type UserAccountForm struct {
+	Uid      string
+	Username string
+	ID       string
+}
+
+type ReadTreeForm struct {
+	Uid        string
+	GardenID   string
+	Tp         string
+	PageNumber string
+}
+
+type ReadTreeUserForm struct {
+	ID       string
+	GardenID string
+}
+
+type ReadCommentForm struct {
+	ID         string
+	TreeID     string
+	TagID      string
+	UserID     string
+	PageNumber string
+	Uid        string
+}
+
+type ReadGardenForm struct {
+	Uid        string
+	UserID     string
+	PageNumber string
+	ID         string
+}
+
 type UserUseCase interface {
 	SignUp(newUser *User) (int, error)
 	SignIn(form *LoginForm) (UserResponse, int, error)
-	Account(mp map[string]string) ([]UserResponse, int, error)
-	UserAccount(mp map[string]string) (UserResponse, int, error)
+	Account(form AccountForm) ([]UserResponse, int, error)
+	UserAccount(form UserAccountForm) (UserResponse, int, error)
 	UpdateUser(user *UserForm, uid string) (int, error)
 	DeleteUser(user *User, uid string) (int, error)
-
-	CreateGarden(garden *Garden, uid string) (int, error)
-	ReadGarden(mp map[string]string) ([]Garden, int, error)
-	UpdateGarden(garden *GardenForm, uid string) (int, error)
-	DeleteGarden(garden *Garden, uid string) (int, error)
 
 	CreateUserType(usertype *UserType, uid string) (int, error)
 	ReadUserType(id string, uid string) ([]UserType, int, error)
 	UpdateAccess(access *AccessForm, uid string) (int, error)
 	UpdateUserType(usertype *UserTypeForm, uid string) (int, error)
 	DeleteUserType(usertype *UserType, uid string) (int, error)
+}
 
-	CreateTreeType(treeType *TreeType, uid string) (int, error)
-	ReadTreeType(id string, uid string) ([]TreeType, int, error)
-	UpdateTreeType(treeType *TreeTypeForm, uid string) (int, error)
-	DeleteTreeType(treeType *TreeType, uid string) (int, error)
-
+type TagUseCase interface {
 	CreateTag(tag *Tag, uid string) (int, error)
 	ReadTag(pageNumber string, uid string) ([]Tag, int, error)
 	ReadTagID(id string) ([]Tag, int, error)
 	UpdateTag(tag *TagForm, uid string) (int, error)
 	DeleteTag(tag *Tag, uid string) (int, error)
+}
+
+type GardenUseCase interface {
+	CreateGarden(garden *Garden, uid string) (int, error)
+	ReadGarden(form ReadGardenForm) ([]Garden, int, error)
+	UpdateGarden(garden *GardenForm, uid string) (int, error)
+	DeleteGarden(garden *Garden, uid string) (int, error)
 
 	CreateLocation(location *GardenLocation, uid string) (int, error)
 	ReadLocation(id string, pageNumber string, uid string) ([]GardenLocation, int, error)
@@ -255,18 +295,29 @@ type UserUseCase interface {
 	ReadGardenType(id string, uid string) ([]GardenType, int, error)
 	UpdateGardenType(gardenType *GardenTypeForm, uid string) (int, error)
 	DeleteGardenType(gardenType *GardenType, uid string) (int, error)
+}
 
+type TreeUseCase interface {
 	CreateTree(tree *Tree, uid string) (int, error)
-	ReadTree(mp map[string]string) ([]Tree, int, error)
-	ReadTreeUser(mp map[string]string) ([]Tree, int, error)
+	ReadTree(form ReadTreeForm) ([]Tree, int, error)
+	ReadTreeUser(form ReadTreeUserForm) ([]Tree, int, error)
 	UpdateTree(tree *TreeForm, uid string) (int, error)
 	DeleteTree(tree *Tree, uid string) (int, error)
 
+	CreateTreeType(treeType *TreeType, uid string) (int, error)
+	ReadTreeType(id string, uid string) ([]TreeType, int, error)
+	UpdateTreeType(treeType *TreeTypeForm, uid string) (int, error)
+	DeleteTreeType(treeType *TreeType, uid string) (int, error)
+}
+
+type CommentUseCase interface {
 	CreateComment(comment *Comment) (int, error)
-	ReadComment(mp map[string]string, pageNumber, uid string) ([]Comment, int, error)
+	ReadComment(form ReadCommentForm) ([]Comment, int, error)
 	UpdateComment(comment *CommentForm, uid string) (int, error)
 	DeleteComment(comment *Comment, uid string) (int, error)
+}
 
+type ServiceUseCase interface {
 	CreateService(service *Service) (int, error)
 	ReadService(uid string) ([]Service, int, error)
 	UpdateService(usertype *ServiceForm, uid string) (int, error)
@@ -274,13 +325,6 @@ type UserUseCase interface {
 }
 
 type UserRepository interface {
-	CreateGarden(garden *Garden) error
-	ReadGarden(n int) ([]Garden, error)
-	ReadGardenID(u uint) ([]Garden, error)
-	ReadGardenUID(id uint) ([]Garden, error)
-	UpdateGarden(garden *GardenForm) error
-	DeleteGarden(id uint) error
-
 	SignUp(newUser *User) error
 	SignIn(form *LoginForm) (User, error)
 	Account(n int) ([]User, error)
@@ -290,17 +334,29 @@ type UserRepository interface {
 	UpdateUser(user *UserForm) error
 	DeleteUser(id uint) error
 
-	CreateTreeType(treeType *TreeType) error
-	ReadTreeType() ([]TreeType, error)
-	ReadTreeTypeID(u uint) ([]TreeType, error)
-	UpdateTreeType(treeType *TreeTypeForm) error
-	DeleteTreeType(id uint) error
+	CreateUserType(usertype *UserType) error
+	ReadUserType() ([]UserType, error)
+	ReadUserTypeID(id uint) ([]UserType, error)
+	UpdateUserType(userType *UserTypeForm) error
+	DeleteUserType(id uint) error
+	UserType(id uint) (string, error)
+}
 
+type TagRepository interface {
 	CreateTag(tag *Tag) error
 	ReadTag(n int) ([]Tag, error)
 	ReadTagID(u uint) ([]Tag, error)
 	UpdateTag(tag *TagForm) error
 	DeleteTag(id uint) error
+}
+
+type GardenRepository interface {
+	CreateGarden(garden *Garden) error
+	ReadGarden(n int) ([]Garden, error)
+	ReadGardenID(u uint) ([]Garden, error)
+	ReadGardenUID(id uint) ([]Garden, error)
+	UpdateGarden(garden *GardenForm) error
+	DeleteGarden(id uint) error
 
 	CreateLocation(location *GardenLocation) error
 	ReadLocation(n int) ([]GardenLocation, error)
@@ -308,18 +364,14 @@ type UserRepository interface {
 	UpdateLocation(loc *GardenLocationForm) error
 	DeleteLocation(id uint) error
 
-	CreateUserType(usertype *UserType) error
-	ReadUserType() ([]UserType, error)
-	ReadUserTypeID(id uint) ([]UserType, error)
-	UpdateUserType(userType *UserTypeForm) error
-	DeleteUserType(id uint) error
-
 	CreateGardenType(gardenType *GardenType) error
 	ReadGardenType() ([]GardenType, error)
 	ReadGardenTypeID(u uint) ([]GardenType, error)
 	UpdateGardenType(gardenType *GardenTypeForm) error
 	DeleteGardenType(id uint) error
+}
 
+type TreeRepository interface {
 	CreateTree(tree *Tree) error
 	ReadTree(n int) ([]Tree, error)
 	ReadTreeID(id uint, q string) ([]Tree, error)
@@ -327,17 +379,43 @@ type UserRepository interface {
 	UpdateTree(tree *TreeForm) error
 	DeleteTree(id uint) error
 
+	CreateTreeType(treeType *TreeType) error
+	ReadTreeType() ([]TreeType, error)
+	ReadTreeTypeID(u uint) ([]TreeType, error)
+	UpdateTreeType(treeType *TreeTypeForm) error
+	DeleteTreeType(id uint) error
+}
+
+type CommentRepository interface {
 	CreateComment(comment *Comment) error
 	ReadComment(n int) ([]Comment, error)
 	ReadCommentID(id uint, q string, span int) ([]Comment, error)
 	UpdateComment(comment *CommentForm) error
 	DeleteComment(id uint) error
+}
 
+type ServiceRepository interface {
 	CreateService(service *Service) error
 	ReadService() ([]Service, error)
 	ReadServiceUrl(url string) (Service, error)
 	UpdateService(service *ServiceForm) error
 	DeleteService(id uint) error
+}
 
-	UserType(id uint) (string, error)
+type UseCases struct {
+	User    UserUseCase
+	Tag     TagUseCase
+	Garden  GardenUseCase
+	Tree    TreeUseCase
+	Comment CommentUseCase
+	Service ServiceUseCase
+}
+
+type Repositories struct {
+	User    UserRepository
+	Tag     TagRepository
+	Garden  GardenRepository
+	Tree    TreeRepository
+	Comment CommentRepository
+	Service ServiceRepository
 }

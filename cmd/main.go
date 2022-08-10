@@ -2,8 +2,8 @@ package main
 
 import (
 	"garden/internal/domain"
-	"garden/internal/user/delivery/httpdelivery"
-	"garden/internal/user/repository/mysqlhandler"
+	"garden/internal/user/delivery/http"
+	mysql2 "garden/internal/user/repository/mysql"
 	"garden/internal/user/usecase"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/mysql"
@@ -31,9 +31,40 @@ func main() {
 	_ = Db.AutoMigrate(&domain.Tag{})
 	_ = Db.AutoMigrate(&domain.Service{})
 	r := echo.New()
-	ar := mysqlhandler.NewMysqlUserRepository(Db)
-	au := usecase.NewUserUseCase(ar)
+
+	ur := mysql2.NewMysqlUserRepository(Db)
+	tagr := mysql2.NewMysqlTagRepository(Db)
+	gr := mysql2.NewMysqlGardenRepository(Db)
+	treer := mysql2.NewMysqlTreeRepository(Db)
+	cr := mysql2.NewMysqlCommentRepository(Db)
+	sr := mysql2.NewMysqlSerivceRepository(Db)
+
+	repo := domain.Repositories{
+		User:    ur,
+		Tag:     tagr,
+		Garden:  gr,
+		Tree:    treer,
+		Comment: cr,
+		Service: sr,
+	}
+
+	uu := usecase.NewUserUseCase(repo)
+	tagu := usecase.NewTagUseCase(repo)
+	gu := usecase.NewGardenUseCase(repo)
+	treeu := usecase.NewTreeUseCase(repo)
+	cu := usecase.NewCommentUseCase(repo)
+	su := usecase.NewSerivceUseCase(repo)
+
+	usecases := domain.UseCases{
+		User:    uu,
+		Tag:     tagu,
+		Garden:  gu,
+		Tree:    treeu,
+		Comment: cu,
+		Service: su,
+	}
+
 	//e.Use(middleware.Logger())
 	//e.Use(middleware.Recover())
-	httpdelivery.NewUserHandler(r, au)
+	http.NewUserHandler(r, usecases)
 }

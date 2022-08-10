@@ -1,11 +1,13 @@
 package jwt
 
 import (
-	"garden/internal/domain"
+	"time"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"time"
+
+	"garden/internal/domain"
 )
 
 type jwtCustomClaims struct {
