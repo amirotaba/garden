@@ -17,7 +17,7 @@ type UserHandler struct {
 	SUseCase    domain.ServiceUseCase
 }
 
-func NewUserHandler(e *echo.Echo, u domain.UseCases) {
+func NewHandler(e *echo.Echo, u domain.UseCases) {
 	handler := &UserHandler{
 		UUseCase:    u.User,
 		TagUseCase:  u.Tag,
@@ -37,7 +37,7 @@ func NewUserHandler(e *echo.Echo, u domain.UseCases) {
 	res.PATCH("update", handler.UpdateUser)
 	res.DELETE("delete", handler.DeleteUser)
 
-	res.POST("user/type/create", handler.CreateUserType)
+	res.POST("userType/create", handler.CreateUserType)
 	res.GET("user/type/read", handler.ReadUserType)
 	res.PATCH("user/type/update", handler.UpdateUserType)
 	res.PATCH("user/type/addAccess", handler.AddAccess)
@@ -87,5 +87,5 @@ func NewUserHandler(e *echo.Echo, u domain.UseCases) {
 
 	handler.addRoutes(e)
 
-	e.Logger.Fatal(e.Start(":http.StatusBadRequest0"))
+	e.Logger.Fatal(e.Start(":4000"))
 }

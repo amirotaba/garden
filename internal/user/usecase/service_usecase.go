@@ -21,36 +21,6 @@ func NewSerivceUseCase(r domain.Repositories) domain.ServiceUseCase {
 }
 
 func (a *ServiceUsecase) CreateService(service *domain.Service) (int, error) {
-	//var boolean bool
-	//uidInt, err := strconv.Atoi(uid)
-	//if err != nil {
-	//	return 400, err
-	//}
-	//SID, err := a.UserRepo.ReadServiceUrl("/user/service/create")
-	//if err != nil {
-	//	return 400, err
-	//}
-	//u, err := a.UserRepo.AccountID(uint(uidInt))
-	//if err != nil {
-	//	return 400, err
-	//}
-	//t, err := a.UserRepo.ReadUserTypeID(u.Type)
-	//if err != nil {
-	//	return 400, err
-	//}
-	//List := strings.Split(t[0].AccessList, ",")
-	//for _, v := range List {
-	//	i, err := strconv.Atoi(v)
-	//	if err != nil {
-	//		return 400, err
-	//	}
-	//	if uint(i) == SID.ID {
-	//		boolean = true
-	//	}
-	//}
-	//if !boolean {
-	//	return 403, errors.New("you can't access to this page")
-	//}
 	_, err := a.ServiceRepo.ReadServiceUrl(service.Url)
 	if err == nil {
 		return 201, nil

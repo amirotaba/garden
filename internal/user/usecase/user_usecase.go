@@ -11,16 +11,13 @@ import (
 
 type usecase struct {
 	UserRepo    domain.UserRepository
-	TagRepo     domain.TagRepository
-	GardenRepo  domain.GardenRepository
-	TreeRepo    domain.TreeRepository
-	CommentRepo domain.CommentRepository
 	ServiceRepo domain.ServiceRepository
 }
 
 func NewUserUseCase(r domain.Repositories) domain.UserUseCase {
 	return &usecase{
-		UserRepo: r.User,
+		UserRepo:    r.User,
+		ServiceRepo: r.Service,
 	}
 }
 
@@ -296,7 +293,7 @@ func (a *usecase) CreateUserType(usertype *domain.UserType, uid string) (int, er
 	if err != nil {
 		return 400, err
 	}
-	SID, err := a.ServiceRepo.ReadServiceUrl("user/usertype/create")
+	SID, err := a.ServiceRepo.ReadServiceUrl("user/userType/create")
 	if err != nil {
 		return 400, err
 	}

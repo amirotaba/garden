@@ -30,6 +30,7 @@ func main() {
 	_ = Db.AutoMigrate(&domain.Comment{})
 	_ = Db.AutoMigrate(&domain.Tag{})
 	_ = Db.AutoMigrate(&domain.Service{})
+
 	r := echo.New()
 
 	ur := mysql2.NewMysqlUserRepository(Db)
@@ -66,5 +67,5 @@ func main() {
 
 	//e.Use(middleware.Logger())
 	//e.Use(middleware.Recover())
-	http.NewUserHandler(r, usecases)
+	http.NewHandler(r, usecases)
 }
