@@ -1,9 +1,24 @@
 package main
 
 import (
+	cDel "garden/internal/comment/handler"
+	"garden/internal/comment/repository/mysql"
+	"garden/internal/comment/usecase"
 	"garden/internal/domain"
+	gDel "garden/internal/garden/handler"
+	"garden/internal/garden/repository/mysql"
+	"garden/internal/garden/usecase"
+	sDel "garden/internal/service/handler"
+	"garden/internal/service/repository/mysql"
+	"garden/internal/service/usecase"
+	tagDel "garden/internal/tag/handler"
+	"garden/internal/tag/repository/mysql"
+	"garden/internal/tag/usecase"
+	treeDel "garden/internal/tree/handler"
+	"garden/internal/tree/repository/mysql"
+	"garden/internal/tree/usecase"
 	"garden/internal/user/delivery/http"
-	mysql2 "garden/internal/user/repository/mysql"
+	"garden/internal/user/repository/mysql"
 	"garden/internal/user/usecase"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/mysql"
@@ -33,12 +48,12 @@ func main() {
 
 	r := echo.New()
 
-	ur := mysql2.NewMysqlUserRepository(Db)
-	tagr := mysql2.NewMysqlTagRepository(Db)
-	gr := mysql2.NewMysqlGardenRepository(Db)
-	treer := mysql2.NewMysqlTreeRepository(Db)
-	cr := mysql2.NewMysqlCommentRepository(Db)
-	sr := mysql2.NewMysqlSerivceRepository(Db)
+	ur := uRepo.NewMysqlUserRepository(Db)
+	tagr := tagRepo.NewMysqlTagRepository(Db)
+	gr := gRepo.NewMysqlRepository(Db)
+	treer := treeRepo.NewMysqlTreeRepository(Db)
+	cr := cRepo.NewMysqlCommentRepository(Db)
+	sr := sRepo.NewMysqlSerivceRepository(Db)
 
 	repo := domain.Repositories{
 		User:    ur,
@@ -49,23 +64,22 @@ func main() {
 		Service: sr,
 	}
 
-	uu := usecase.NewUserUseCase(repo)
-	tagu := usecase.NewTagUseCase(repo)
-	gu := usecase.NewGardenUseCase(repo)
-	treeu := usecase.NewTreeUseCase(repo)
-	cu := usecase.NewCommentUseCase(repo)
-	su := usecase.NewSerivceUseCase(repo)
+	uu := uUsecase.NewUserUseCase(repo)
+	tagu := tagUsecase.NewTagUseCase(repo)
+	gu := gUsecase.NewGardenUseCase(repo)
+	treeu := treeUsecase.NewTreeUseCase(repo)
+	cu := cUsecase.NewCommentUseCase(repo)
+	su := sUsecase.NewSerivceUseCase(repo)
 
-	usecases := domain.UseCases{
-		User:    uu,
-		Tag:     tagu,
-		Garden:  gu,
-		Tree:    treeu,
-		Comment: cu,
-		Service: su,
-	}
 
 	//e.Use(middleware.Logger())
 	//e.Use(middleware.Recover())
-	http.NewHandler(r, usecases)
+
+	
+	uDel.NewHandler(r, uu)
+	tagDel.NewHandler(r, tagu)
+	gDel.NewHandler(r, gu)
+	treeDel.NewHandler(r, treeu)
+	cDel.NewHandler(r, cu)
+	sDel.NewHandler(r, su)
 }

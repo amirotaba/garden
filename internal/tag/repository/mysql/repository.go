@@ -1,4 +1,4 @@
-package mysql
+package tagRepo
 
 import (
 	"garden/internal/domain"

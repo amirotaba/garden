@@ -1,4 +1,4 @@
-package mysql
+package uRepo
 
 import (
 	"garden/internal/domain"

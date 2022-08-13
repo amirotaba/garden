@@ -1,4 +1,4 @@
-package mysql
+package sRepo
 
 import (
 	"garden/internal/domain"
