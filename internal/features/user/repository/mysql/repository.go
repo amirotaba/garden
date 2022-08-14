@@ -47,7 +47,7 @@ func (m *mysqlUserRepository) ReadByType(n int, tp uint) ([]domain.User, error) 
 	return user, nil
 }
 
-func (m *mysqlUserRepository) Create(user *domain.User) error {
+func (m *mysqlUserRepository) Create(user domain.User) error {
 	if err := m.Conn.Create(user).Error; err != nil {
 		return err
 	}
@@ -92,10 +92,10 @@ func (m *mysqlUserRepository) ReadType() ([]domain.UserType, error) {
 	return uType, nil
 }
 
-func (m *mysqlUserRepository) ReadTypeID(id uint) ([]domain.UserType, error) {
-	var uType []domain.UserType
+func (m *mysqlUserRepository) ReadTypeID(id uint) (domain.UserType, error) {
+	var uType domain.UserType
 	if err := m.Conn.Where("id = ?", id).First(&uType).Error; err != nil {
-		return []domain.UserType{}, err
+		return domain.UserType{}, err
 	}
 	return uType, nil
 }

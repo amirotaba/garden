@@ -54,22 +54,17 @@ func (m *Handler) SignIn(e echo.Context) error {
 }
 
 func (m *Handler) SignUp(e echo.Context) error {
-	user := new(domain.User)
+	var user domain.User
 	if err := e.Bind(user); err != nil {
 		return e.JSON(403, err.Error())
 	}
 
-	code, err := m.UseCase.Create(user)
+	u, err := m.UseCase.Create(user)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	u := domain.UserResponse{UserName: user.UserName}
-	msg := &domain.SignUpMessage{
-		Text:     "you signed up as, ",
-		UserName: u.UserName,
-	}
-	return e.JSON(http.StatusOK, msg)
+	return e.JSON(http.StatusOK, u)
 }
 
 func (m *Handler) Account(e echo.Context) error {

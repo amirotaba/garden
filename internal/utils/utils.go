@@ -2,27 +2,41 @@ package utils
 
 import (
 	"garden/internal/domain"
-	comment "garden/internal/features/comment/handler/http"
+	"garden/internal/features/comment/handler/http"
 	"garden/internal/features/comment/repository/mysql"
 	"garden/internal/features/comment/usecase"
-	garden "garden/internal/features/garden/handler/http"
+	"garden/internal/features/garden/handler/http"
 	"garden/internal/features/garden/repository/mysql"
 	"garden/internal/features/garden/usecase"
-	service "garden/internal/features/service/handler/http"
+	"garden/internal/features/service/handler/http"
 	"garden/internal/features/service/repository/mysql"
 	"garden/internal/features/service/usecase"
-	tag "garden/internal/features/tag/handler/http"
+	"garden/internal/features/tag/handler/http"
 	"garden/internal/features/tag/repository/mysql"
 	"garden/internal/features/tag/usecase"
-	tree "garden/internal/features/tree/handler/http"
+	"garden/internal/features/tree/handler/http"
 	"garden/internal/features/tree/repository/mysql"
 	"garden/internal/features/tree/usecase"
-	user "garden/internal/features/user/handler/http"
+	"garden/internal/features/user/handler/http"
 	"garden/internal/features/user/repository/mysql"
 	"garden/internal/features/user/usecase"
 	"github.com/labstack/echo/v4"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
 )
+
+func Connection() *gorm.DB {
+	dbUser := "root"
+	dbPassword := "97216017"
+	dbName := "garden"
+	dsn := dbUser + ":" + dbPassword + "@tcp(127.0.0.1:3306)/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
+	Db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Println("Connecting to database failed")
+	}
+	return Db
+}
 
 func Migrate(Db *gorm.DB) {
 	_ = Db.AutoMigrate(&domain.User{})

@@ -258,7 +258,7 @@ type ReadGardenForm struct {
 }
 
 type UserUseCase interface {
-	Create(newUser *User) (int, error)
+	Create(newUser User) (UserResponse, error)
 	SignIn(form *LoginForm) (UserResponse, int, error)
 	Read(form AccountForm) ([]UserResponse, int, error)
 	UserRead(form UserAccountForm) (UserResponse, int, error)
@@ -325,7 +325,7 @@ type ServiceUseCase interface {
 }
 
 type UserRepository interface {
-	Create(newUser *User) error
+	Create(newUser User) error
 	SignIn(form *LoginForm) (User, error)
 	Read(n int) ([]User, error)
 	ReadUsername(username string) (User, error)
@@ -336,7 +336,7 @@ type UserRepository interface {
 
 	CreateType(usertype *UserType) error
 	ReadType() ([]UserType, error)
-	ReadTypeID(id uint) ([]UserType, error)
+	ReadTypeID(id uint) (UserType, error)
 	UpdateType(userType *UserTypeForm) error
 	DeleteType(id uint) error
 	ReadTypeUser(id uint) (string, error)

@@ -53,17 +53,29 @@ func (a *usecase) SignIn(form *domain.LoginForm) (domain.UserResponse, int, erro
 	return u, 200, nil
 }
 
-func (a *usecase) Create(user *domain.User) (int, error) {
+func (a *usecase) Create(user domain.User) (domain.UserResponse, error) {
 	if _, err := a.UserRepo.ReadUsername(user.UserName); err == nil {
-		return 400, errors.New("this username is taken")
+		return domain.UserResponse{}, errors.New("this username is taken")
 	}
 
 	if err := a.UserRepo.Create(user); err != nil {
-		return 400, err
+		return domain.UserResponse{}, err
 	}
 
-	// do not return status code in response
-	return 201, nil
+	t, err := a.UserRepo.ReadTypeID(user.ID)
+	if err != nil {
+		return domain.UserResponse{}, err
+	}
+
+	tp := domain.TypeStruct{
+		ID:   t.ID,
+		Name: t.Name,
+	}
+
+	return domain.UserResponse{
+		UserName: user.UserName,
+		Type:     tp,
+	}, nil
 }
 
 func (a *usecase) Read(form domain.AccountForm) ([]domain.UserResponse, int, error) {
@@ -89,7 +101,7 @@ func (a *usecase) Read(form domain.AccountForm) ([]domain.UserResponse, int, err
 		return []domain.UserResponse{}, 400, err
 	}
 
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -176,7 +188,7 @@ func (a *usecase) UserRead(form domain.UserAccountForm) (domain.UserResponse, in
 	if err != nil {
 		return domain.UserResponse{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -231,7 +243,7 @@ func (a *usecase) Update(user *domain.UserForm, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -268,7 +280,7 @@ func (a *usecase) Delete(user *domain.User, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -305,7 +317,7 @@ func (a *usecase) CreateType(usertype *domain.UserType, uid string) (int, error)
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -326,6 +338,7 @@ func (a *usecase) CreateType(usertype *domain.UserType, uid string) (int, error)
 
 func (a *usecase) ReadType(id string, uid string) ([]domain.UserType, int, error) {
 	var boolean bool
+	list := make([]domain.UserType, 0)
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
 		return []domain.UserType{}, 400, err
@@ -342,7 +355,7 @@ func (a *usecase) ReadType(id string, uid string) ([]domain.UserType, int, error
 	if err != nil {
 		return []domain.UserType{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -367,7 +380,8 @@ func (a *usecase) ReadType(id string, uid string) ([]domain.UserType, int, error
 	if err != nil {
 		return []domain.UserType{}, 400, err
 	}
-	return tt, 200, nil
+	list = append(list, tt)
+	return list, 200, nil
 }
 
 func (a *usecase) UpdateType(usertype *domain.UserTypeForm, uid string) (int, error) {
@@ -388,7 +402,7 @@ func (a *usecase) UpdateType(usertype *domain.UserTypeForm, uid string) (int, er
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -425,7 +439,7 @@ func (a *usecase) UpdateAccess(access *domain.AccessForm, uid string) (int, erro
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -468,7 +482,7 @@ func (a *usecase) DeleteType(usertype *domain.UserType, uid string) (int, error)
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
