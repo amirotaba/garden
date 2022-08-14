@@ -63,17 +63,6 @@ func NewHandler(e *echo.Echo, u domain.UseCases) {
 	res.PATCH("garden/type/update", handler.UpdateGardenType)
 	res.DELETE("garden/type/delete", handler.DeleteGardenType)
 
-	res.POST("tree/create", handler.CreateTree)
-	res.GET("tree/read", handler.ReadTree)
-	res.GET("tree/readUser", handler.ReadTreeUser)
-	res.PATCH("tree/update", handler.UpdateTree)
-	res.DELETE("tree/delete", handler.DeleteTree)
-
-	res.POST("tree/type/create", handler.CreateTreeType)
-	res.GET("tree/type/read", handler.ReadTreeType)
-	res.PATCH("tree/type/update", handler.UpdateTreeType)
-	res.DELETE("tree/type/delete", handler.DeleteTreeType)
-
 	res.POST("comment/create", handler.CreateComment)
 	res.GET("comment/read", handler.ReadComment)
 	res.PATCH("comment/update", handler.UpdateComment)

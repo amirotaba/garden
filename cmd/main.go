@@ -1,7 +1,6 @@
 package main
 
 import (
-	"garden/internal/handler/http"
 	"garden/internal/utils"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/mysql"
@@ -20,14 +19,13 @@ func main() {
 	}
 	utils.Migrate(Db)
 
-	r := echo.New()
+	e := echo.New()
 
-	repo := utils.NewRepository(Db)
+	repos := utils.NewRepository(Db)
 
-	usecase := utils.NewUseCase(repo)
+	useCases := utils.NewUseCase(repos)
 
-	//e.Use(middleware.Logger())
-	//e.Use(middleware.Recover())
+	utils.NewHandler(e, useCases)
 
-	deliver.NewHandler(r, usecase)
+	e.Logger.Fatal(e.Start(":4000"))
 }

@@ -1,13 +1,33 @@
-package deliver
+package service
 
 import (
+	"garden/internal/domain"
 	"garden/internal/pkg/jwt"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"strconv"
-
-	"garden/internal/domain"
-	"github.com/labstack/echo/v4"
 )
+
+type Handler struct {
+	UseCase domain.ServiceUseCase
+}
+
+func NewHandler(e *echo.Echo, u domain.ServiceUseCase) {
+	handler := &Handler{
+		UseCase: u,
+	}
+
+	res := e.Group("user/")
+	res.Use(middleware.JWTWithConfig(jwt.Config))
+
+	res.POST("service/create", handler.CreateService)
+	res.GET("service/read", handler.ReadService)
+	res.PATCH("service/update", handler.UpdateService)
+	res.DELETE("service/delete", handler.DeleteService)
+
+	handler.addRoutes(e)
+}
 
 func (m *Handler) CreateService(e echo.Context) error {
 	service := new(domain.Service)
@@ -15,16 +35,16 @@ func (m *Handler) CreateService(e echo.Context) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.Service.Create(service)
+	code, err := m.UseCase.Create(service)
 	if err != nil {
 		return e.JSON(code, err.Error())
 	}
-	return e.JSON(code, "UseCase added successfully")
+	return e.JSON(code, "Service added successfully")
 }
 
 func (m *Handler) ReadService(e echo.Context) error {
 	uid := strconv.Itoa(int(jwt.UserID(e)))
-	t, code, err := m.Service.Read(uid)
+	t, code, err := m.UseCase.Read(uid)
 	if err != nil {
 		return e.JSON(code, err.Error())
 	}
@@ -38,7 +58,7 @@ func (m *Handler) UpdateService(e echo.Context) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.Service.Update(service, uid)
+	code, err := m.UseCase.Update(service, uid)
 	if err != nil {
 		return e.JSON(code, err.Error())
 	}
@@ -52,11 +72,11 @@ func (m *Handler) DeleteService(e echo.Context) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.Service.Delete(service, uid)
+	code, err := m.UseCase.Delete(service, uid)
 	if err != nil {
 		return e.JSON(code, err.Error())
 	}
-	return e.JSON(code, "User type deleted successfully")
+	return e.JSON(code, "Service deleted successfully")
 }
 
 func (m *Handler) addRoutes(e *echo.Echo) {
@@ -67,6 +87,6 @@ func (m *Handler) addRoutes(e *echo.Echo) {
 			Url:    r[i].Path,
 			Method: r[i].Method,
 		}
-		_, _ = m.Service.Create(service)
+		_, _ = m.UseCase.Create(service)
 	}
 }

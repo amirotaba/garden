@@ -1,19 +1,26 @@
 package utils
 
 import (
-	cRepo "garden/internal/apps/comment/repository/mysql"
-	cUsecase "garden/internal/apps/comment/usecase"
-	gRepo "garden/internal/apps/garden/repository/mysql"
-	gUsecase "garden/internal/apps/garden/usecase"
-	sRepo "garden/internal/apps/service/repository/mysql"
-	sUsecase "garden/internal/apps/service/usecase"
-	tagRepo "garden/internal/apps/tag/repository/mysql"
-	tagUsecase "garden/internal/apps/tag/usecase"
-	treeRepo "garden/internal/apps/tree/repository/mysql"
-	treeUsecase "garden/internal/apps/tree/usecase"
-	uRepo "garden/internal/apps/user/repository/mysql"
-	uUsecase "garden/internal/apps/user/usecase"
 	"garden/internal/domain"
+	comment "garden/internal/features/comment/handler/http"
+	"garden/internal/features/comment/repository/mysql"
+	"garden/internal/features/comment/usecase"
+	garden "garden/internal/features/garden/handler/http"
+	"garden/internal/features/garden/repository/mysql"
+	"garden/internal/features/garden/usecase"
+	service "garden/internal/features/service/handler/http"
+	"garden/internal/features/service/repository/mysql"
+	"garden/internal/features/service/usecase"
+	tag "garden/internal/features/tag/handler/http"
+	"garden/internal/features/tag/repository/mysql"
+	"garden/internal/features/tag/usecase"
+	tree "garden/internal/features/tree/handler/http"
+	"garden/internal/features/tree/repository/mysql"
+	"garden/internal/features/tree/usecase"
+	user "garden/internal/features/user/handler/http"
+	"garden/internal/features/user/repository/mysql"
+	"garden/internal/features/user/usecase"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -31,39 +38,34 @@ func Migrate(Db *gorm.DB) {
 }
 
 func NewRepository(Db *gorm.DB) domain.Repositories {
-	ur := uRepo.NewMysqlUserRepository(Db)
-	tagr := tagRepo.NewMysqlTagRepository(Db)
-	gr := gRepo.NewMysqlRepository(Db)
-	treer := treeRepo.NewMysqlTreeRepository(Db)
-	cr := cRepo.NewMysqlCommentRepository(Db)
-	sr := sRepo.NewMysqlSerivceRepository(Db)
-
-	repo := domain.Repositories{
-		User:    ur,
-		Tag:     tagr,
-		Garden:  gr,
-		Tree:    treer,
-		Comment: cr,
-		Service: sr,
+	repository := domain.Repositories{
+		User:    userRepo.NewMysqlRepository(Db),
+		Tag:     tagRepo.NewMysqlRepository(Db),
+		Garden:  gardenRepo.NewMysqlRepository(Db),
+		Tree:    treeRepo.NewMysqlRepository(Db),
+		Comment: commentRepo.NewMysqlRepository(Db),
+		Service: serviceRepo.NewMysqlRepository(Db),
 	}
-	return repo
+	return repository
 }
 
 func NewUseCase(repo domain.Repositories) domain.UseCases {
-	uu := uUsecase.NewUserUseCase(repo)
-	tagu := tagUsecase.NewTagUseCase(repo)
-	gu := gUsecase.NewGardenUseCase(repo)
-	treeu := treeUsecase.NewTreeUseCase(repo)
-	cu := cUsecase.NewCommentUseCase(repo)
-	su := sUsecase.NewSerivceUseCase(repo)
-
-	u := domain.UseCases{
-		User:    uu,
-		Tag:     tagu,
-		Garden:  gu,
-		Tree:    treeu,
-		Comment: cu,
-		Service: su,
+	usecase := domain.UseCases{
+		User:    userUsecase.NewUseCase(repo),
+		Tag:     tagUsecase.NewUseCase(repo),
+		Garden:  gardenUsecase.NewUseCase(repo),
+		Tree:    treeUsecase.NewUseCase(repo),
+		Comment: commentUsecase.NewUseCase(repo),
+		Service: serviceUsecase.NewUseCase(repo),
 	}
-	return u
+	return usecase
+}
+
+func NewHandler(e *echo.Echo, useCase domain.UseCases) {
+	user.NewHandler(e, useCase.User)
+	tag.NewHandler(e, useCase.Tag)
+	garden.NewHandler(e, useCase.Garden)
+	tree.NewHandler(e, useCase.Tree)
+	comment.NewHandler(e, useCase.Comment)
+	service.NewHandler(e, useCase.Service)
 }
