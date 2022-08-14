@@ -258,105 +258,105 @@ type ReadGardenForm struct {
 }
 
 type UserUseCase interface {
-	SignUp(newUser *User) (int, error)
+	Create(newUser *User) (int, error)
 	SignIn(form *LoginForm) (UserResponse, int, error)
-	Account(form AccountForm) ([]UserResponse, int, error)
-	UserAccount(form UserAccountForm) (UserResponse, int, error)
-	UpdateUser(user *UserForm, uid string) (int, error)
-	DeleteUser(user *User, uid string) (int, error)
+	Read(form AccountForm) ([]UserResponse, int, error)
+	UserRead(form UserAccountForm) (UserResponse, int, error)
+	Update(user *UserForm, uid string) (int, error)
+	Delete(user *User, uid string) (int, error)
 
-	CreateUserType(usertype *UserType, uid string) (int, error)
-	ReadUserType(id string, uid string) ([]UserType, int, error)
+	CreateType(usertype *UserType, uid string) (int, error)
+	ReadType(id string, uid string) ([]UserType, int, error)
 	UpdateAccess(access *AccessForm, uid string) (int, error)
-	UpdateUserType(usertype *UserTypeForm, uid string) (int, error)
-	DeleteUserType(usertype *UserType, uid string) (int, error)
+	UpdateType(usertype *UserTypeForm, uid string) (int, error)
+	DeleteType(usertype *UserType, uid string) (int, error)
 }
 
 type TagUseCase interface {
-	CreateTag(tag *Tag, uid string) (int, error)
-	ReadTag(pageNumber string, uid string) ([]Tag, int, error)
-	ReadTagID(id string) ([]Tag, int, error)
-	UpdateTag(tag *TagForm, uid string) (int, error)
-	DeleteTag(tag *Tag, uid string) (int, error)
+	Create(tag *Tag, uid string) (int, error)
+	Read(pageNumber string, uid string) ([]Tag, int, error)
+	ReadID(id string) ([]Tag, int, error)
+	Update(tag *TagForm, uid string) (int, error)
+	Delete(tag *Tag, uid string) (int, error)
 }
 
 type GardenUseCase interface {
-	CreateGarden(garden *Garden, uid string) (int, error)
-	ReadGarden(form ReadGardenForm) ([]Garden, int, error)
-	UpdateGarden(garden *GardenForm, uid string) (int, error)
-	DeleteGarden(garden *Garden, uid string) (int, error)
+	Create(garden *Garden, uid string) (int, error)
+	Read(form ReadGardenForm) ([]Garden, int, error)
+	Update(garden *GardenForm, uid string) (int, error)
+	Delete(garden *Garden, uid string) (int, error)
 
 	CreateLocation(location *GardenLocation, uid string) (int, error)
 	ReadLocation(id string, pageNumber string, uid string) ([]GardenLocation, int, error)
 	UpdateLocation(loc *GardenLocationForm, uid string) (int, error)
 	DeleteLocation(loc *GardenLocation, uid string) (int, error)
 
-	CreateGardenType(gardenType *GardenType, uid string) (int, error)
-	ReadGardenType(id string, uid string) ([]GardenType, int, error)
-	UpdateGardenType(gardenType *GardenTypeForm, uid string) (int, error)
-	DeleteGardenType(gardenType *GardenType, uid string) (int, error)
+	CreateType(gardenType *GardenType, uid string) (int, error)
+	ReadType(id string, uid string) ([]GardenType, int, error)
+	UpdateType(gardenType *GardenTypeForm, uid string) (int, error)
+	DeleteType(gardenType *GardenType, uid string) (int, error)
 }
 
 type TreeUseCase interface {
-	CreateTree(tree *Tree, uid string) (int, error)
-	ReadTree(form ReadTreeForm) ([]Tree, int, error)
-	ReadTreeUser(form ReadTreeUserForm) ([]Tree, int, error)
-	UpdateTree(tree *TreeForm, uid string) (int, error)
-	DeleteTree(tree *Tree, uid string) (int, error)
+	Create(tree *Tree, uid string) (int, error)
+	Read(form ReadTreeForm) ([]Tree, int, error)
+	ReadUser(form ReadTreeUserForm) ([]Tree, int, error)
+	Update(tree *TreeForm, uid string) (int, error)
+	Delete(tree *Tree, uid string) (int, error)
 
-	CreateTreeType(treeType *TreeType, uid string) (int, error)
-	ReadTreeType(id string, uid string) ([]TreeType, int, error)
-	UpdateTreeType(treeType *TreeTypeForm, uid string) (int, error)
-	DeleteTreeType(treeType *TreeType, uid string) (int, error)
+	CreateType(treeType *TreeType, uid string) (int, error)
+	ReadType(id string, uid string) ([]TreeType, int, error)
+	UpdateType(treeType *TreeTypeForm, uid string) (int, error)
+	DeleteType(treeType *TreeType, uid string) (int, error)
 }
 
 type CommentUseCase interface {
-	CreateComment(comment *Comment) (int, error)
-	ReadComment(form ReadCommentForm) ([]Comment, int, error)
-	UpdateComment(comment *CommentForm, uid string) (int, error)
-	DeleteComment(comment *Comment, uid string) (int, error)
+	Create(comment *Comment) (int, error)
+	Read(form ReadCommentForm) ([]Comment, int, error)
+	Update(comment *CommentForm, uid string) (int, error)
+	Delete(comment *Comment, uid string) (int, error)
 }
 
 type ServiceUseCase interface {
-	CreateService(service *Service) (int, error)
-	ReadService(uid string) ([]Service, int, error)
-	UpdateService(usertype *ServiceForm, uid string) (int, error)
-	DeleteService(service *Service, uid string) (int, error)
+	Create(service *Service) (int, error)
+	Read(uid string) ([]Service, int, error)
+	Update(usertype *ServiceForm, uid string) (int, error)
+	Delete(service *Service, uid string) (int, error)
 }
 
 type UserRepository interface {
-	SignUp(newUser *User) error
+	Create(newUser *User) error
 	SignIn(form *LoginForm) (User, error)
-	Account(n int) ([]User, error)
-	AccountUsername(username string) (User, error)
-	AccountID(id uint) (User, error)
-	AccountType(n int, tp uint) ([]User, error)
-	UpdateUser(user *UserForm) error
-	DeleteUser(id uint) error
+	Read(n int) ([]User, error)
+	ReadUsername(username string) (User, error)
+	ReadID(id uint) (User, error)
+	ReadByType(n int, tp uint) ([]User, error)
+	Update(user *UserForm) error
+	Delete(id uint) error
 
-	CreateUserType(usertype *UserType) error
-	ReadUserType() ([]UserType, error)
-	ReadUserTypeID(id uint) ([]UserType, error)
-	UpdateUserType(userType *UserTypeForm) error
-	DeleteUserType(id uint) error
-	UserType(id uint) (string, error)
+	CreateType(usertype *UserType) error
+	ReadType() ([]UserType, error)
+	ReadTypeID(id uint) ([]UserType, error)
+	UpdateType(userType *UserTypeForm) error
+	DeleteType(id uint) error
+	ReadTypeUser(id uint) (string, error)
 }
 
 type TagRepository interface {
-	CreateTag(tag *Tag) error
-	ReadTag(n int) ([]Tag, error)
-	ReadTagID(u uint) ([]Tag, error)
-	UpdateTag(tag *TagForm) error
-	DeleteTag(id uint) error
+	Create(tag *Tag) error
+	Read(n int) ([]Tag, error)
+	ReadID(u uint) ([]Tag, error)
+	Update(tag *TagForm) error
+	Delete(id uint) error
 }
 
 type GardenRepository interface {
-	CreateGarden(garden *Garden) error
-	ReadGarden(n int) ([]Garden, error)
-	ReadGardenID(u uint) ([]Garden, error)
-	ReadGardenUID(id uint) ([]Garden, error)
-	UpdateGarden(garden *GardenForm) error
-	DeleteGarden(id uint) error
+	Create(garden *Garden) error
+	Read(n int) ([]Garden, error)
+	ReadID(u uint) ([]Garden, error)
+	ReadUID(id uint) ([]Garden, error)
+	Update(garden *GardenForm) error
+	Delete(id uint) error
 
 	CreateLocation(location *GardenLocation) error
 	ReadLocation(n int) ([]GardenLocation, error)
@@ -364,42 +364,42 @@ type GardenRepository interface {
 	UpdateLocation(loc *GardenLocationForm) error
 	DeleteLocation(id uint) error
 
-	CreateGardenType(gardenType *GardenType) error
-	ReadGardenType() ([]GardenType, error)
-	ReadGardenTypeID(u uint) ([]GardenType, error)
-	UpdateGardenType(gardenType *GardenTypeForm) error
-	DeleteGardenType(id uint) error
+	CreateType(gardenType *GardenType) error
+	ReadType() ([]GardenType, error)
+	ReadTypeID(u uint) ([]GardenType, error)
+	UpdateType(gardenType *GardenTypeForm) error
+	DeleteType(id uint) error
 }
 
 type TreeRepository interface {
-	CreateTree(tree *Tree) error
-	ReadTree(n int) ([]Tree, error)
-	ReadTreeID(id uint, q string) ([]Tree, error)
-	ReadTreeByType(t uint, n int) ([]Tree, error)
-	UpdateTree(tree *TreeForm) error
-	DeleteTree(id uint) error
+	Create(tree *Tree) error
+	Read(n int) ([]Tree, error)
+	ReadID(id uint, q string) ([]Tree, error)
+	ReadByType(t uint, n int) ([]Tree, error)
+	Update(tree *TreeForm) error
+	Delete(id uint) error
 
-	CreateTreeType(treeType *TreeType) error
-	ReadTreeType() ([]TreeType, error)
-	ReadTreeTypeID(u uint) ([]TreeType, error)
-	UpdateTreeType(treeType *TreeTypeForm) error
-	DeleteTreeType(id uint) error
+	CreateType(treeType *TreeType) error
+	ReadType() ([]TreeType, error)
+	ReadTypeID(u uint) ([]TreeType, error)
+	UpdateType(treeType *TreeTypeForm) error
+	DeleteType(id uint) error
 }
 
 type CommentRepository interface {
-	CreateComment(comment *Comment) error
-	ReadComment(n int) ([]Comment, error)
-	ReadCommentID(id uint, q string, span int) ([]Comment, error)
-	UpdateComment(comment *CommentForm) error
-	DeleteComment(id uint) error
+	Create(comment *Comment) error
+	Read(n int) ([]Comment, error)
+	ReadID(id uint, q string, span int) ([]Comment, error)
+	Update(comment *CommentForm) error
+	Delete(id uint) error
 }
 
 type ServiceRepository interface {
-	CreateService(service *Service) error
-	ReadService() ([]Service, error)
-	ReadServiceUrl(url string) (Service, error)
-	UpdateService(service *ServiceForm) error
-	DeleteService(id uint) error
+	Create(service *Service) error
+	Read() ([]Service, error)
+	ReadURL(url string) (Service, error)
+	Update(service *ServiceForm) error
+	Delete(id uint) error
 }
 
 type UseCases struct {
