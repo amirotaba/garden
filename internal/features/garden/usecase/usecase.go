@@ -40,7 +40,7 @@ func (a *gardenUsecase) Create(garden *domain.Garden, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -77,7 +77,7 @@ func (a *gardenUsecase) Read(form domain.ReadGardenForm) ([]domain.Garden, int, 
 	if err != nil {
 		return []domain.Garden{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -138,7 +138,7 @@ func (a *gardenUsecase) Update(garden *domain.GardenForm, uid string) (int, erro
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -175,7 +175,7 @@ func (a *gardenUsecase) Delete(garden *domain.Garden, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -215,7 +215,7 @@ func (a *gardenUsecase) CreateLocation(location *domain.GardenLocation, uid stri
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -252,7 +252,7 @@ func (a *gardenUsecase) ReadLocation(gid string, pageNumber string, uid string) 
 	if err != nil {
 		return []domain.GardenLocation{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -306,7 +306,7 @@ func (a *gardenUsecase) UpdateLocation(loc *domain.GardenLocationForm, uid strin
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -343,7 +343,7 @@ func (a *gardenUsecase) DeleteLocation(loc *domain.GardenLocation, uid string) (
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -380,7 +380,7 @@ func (a *gardenUsecase) CreateType(gardenType *domain.GardenType, uid string) (i
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -417,7 +417,7 @@ func (a *gardenUsecase) ReadType(id string, uid string) ([]domain.GardenType, in
 	if err != nil {
 		return []domain.GardenType{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -456,7 +456,7 @@ func (a *gardenUsecase) UpdateType(gardenType *domain.GardenTypeForm, uid string
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -493,7 +493,7 @@ func (a *gardenUsecase) DeleteType(gardenType *domain.GardenType, uid string) (i
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {

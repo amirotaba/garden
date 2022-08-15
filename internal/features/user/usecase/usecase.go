@@ -2,7 +2,7 @@ package userUsecase
 
 import (
 	"errors"
-	"garden/internal/pkg/jwt"
+	"garden/internal/middleware/jwt"
 	"strconv"
 	"strings"
 
@@ -262,35 +262,12 @@ func (a *usecase) Update(user *domain.UserForm, uid string) (int, error) {
 	return 403, errors.New("you can't access to this page")
 }
 
-func (a *usecase) Delete(user *domain.User, uid string) (int, error) {
-	var boolean bool
-	uidInt, err := strconv.Atoi(uid)
+func (a *usecase) Delete(user *domain.User, uid uint) (int, error) {
+	u, err := a.UserRepo.ReadID(uid)
 	if err != nil {
 		return 400, err
 	}
-	SID, err := a.ServiceRepo.ReadURL("user/delete")
-	if err != nil {
-		return 400, err
-	}
-	u, err := a.UserRepo.ReadID(uint(uidInt))
-	if err != nil {
-		return 400, err
-	}
-	t, err := a.UserRepo.ReadTypeID(u.Type)
-	if err != nil {
-		return 400, err
-	}
-	List := strings.Split(t.AccessList, ",")
-	for _, v := range List {
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			return 400, err
-		}
-		if uint(i) == SID.ID {
-			boolean = true
-		}
-	}
-	if boolean || user.UserName == u.UserName {
+	if user.UserName == u.UserName {
 		if err := a.UserRepo.Delete(user.ID); err != nil {
 			return 400, err
 		}
@@ -299,37 +276,7 @@ func (a *usecase) Delete(user *domain.User, uid string) (int, error) {
 	return 403, errors.New("you can't access to this page")
 }
 
-func (a *usecase) CreateType(usertype *domain.UserType, uid string) (int, error) {
-	var boolean bool
-	uidInt, err := strconv.Atoi(uid)
-	if err != nil {
-		return 400, err
-	}
-	SID, err := a.ServiceRepo.ReadURL("user/userType/create")
-	if err != nil {
-		return 400, err
-	}
-	u, err := a.UserRepo.ReadID(uint(uidInt))
-	if err != nil {
-		return 400, err
-	}
-	t, err := a.UserRepo.ReadTypeID(u.Type)
-	if err != nil {
-		return 400, err
-	}
-	List := strings.Split(t.AccessList, ",")
-	for _, v := range List {
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			return 400, err
-		}
-		if uint(i) == SID.ID {
-			boolean = true
-		}
-	}
-	if !boolean {
-		return 403, errors.New("you can't access to this page")
-	}
+func (a *usecase) CreateType(usertype *domain.UserType, uid uint) (int, error) {
 	if err := a.UserRepo.CreateType(usertype); err != nil {
 		return 400, err
 	}
@@ -337,37 +284,7 @@ func (a *usecase) CreateType(usertype *domain.UserType, uid string) (int, error)
 }
 
 func (a *usecase) ReadType(id string, uid string) ([]domain.UserType, int, error) {
-	var boolean bool
 	list := make([]domain.UserType, 0)
-	uidInt, err := strconv.Atoi(uid)
-	if err != nil {
-		return []domain.UserType{}, 400, err
-	}
-	SID, err := a.ServiceRepo.ReadURL("user/usertype/read")
-	if err != nil {
-		return []domain.UserType{}, 400, err
-	}
-	u, err := a.UserRepo.ReadID(uint(uidInt))
-	if err != nil {
-		return []domain.UserType{}, 400, err
-	}
-	t, err := a.UserRepo.ReadTypeID(u.Type)
-	if err != nil {
-		return []domain.UserType{}, 400, err
-	}
-	List := strings.Split(t.AccessList, ",")
-	for _, v := range List {
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			return []domain.UserType{}, 400, err
-		}
-		if uint(i) == SID.ID {
-			boolean = true
-		}
-	}
-	if !boolean {
-		return []domain.UserType{}, 403, errors.New("you can't access to this page")
-	}
 	if id == "" {
 		t, err := a.UserRepo.ReadType()
 		if err != nil {
@@ -499,4 +416,24 @@ func (a *usecase) DeleteType(usertype *domain.UserType, uid string) (int, error)
 		return 400, err
 	}
 	return 204, nil
+}
+
+func (a *usecase) Access(url string, uid uint) (domain.CheckAccessForm, error) {
+	SID, err := a.ServiceRepo.ReadURL(url)
+	if err != nil {
+		return domain.CheckAccessForm{}, err
+	}
+	u, err := a.UserRepo.ReadID(uid)
+	if err != nil {
+		return domain.CheckAccessForm{}, err
+	}
+	t, err := a.UserRepo.ReadTypeID(u.Type)
+	if err != nil {
+		return domain.CheckAccessForm{}, err
+	}
+	form := domain.CheckAccessForm{
+		ServiceID:  SID.ID,
+		AccessList: t.AccessList,
+	}
+	return form, nil
 }

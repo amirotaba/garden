@@ -2,7 +2,7 @@ package deliver
 
 import (
 	"garden/internal/domain"
-	"garden/internal/pkg/jwt"
+	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"

@@ -1,7 +1,7 @@
 package deliver
 
 import (
-	"garden/internal/pkg/jwt"
+	"garden/internal/middleware/jwt"
 	"net/http"
 	"strconv"
 

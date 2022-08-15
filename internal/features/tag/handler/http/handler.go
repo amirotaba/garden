@@ -2,7 +2,7 @@ package tag
 
 import (
 	"garden/internal/domain"
-	"garden/internal/pkg/jwt"
+	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"

@@ -45,6 +45,11 @@ type AccessForm struct {
 	TypeID string `json:"type_id"`
 }
 
+type CheckAccessForm struct {
+	AccessList string
+	ServiceID  uint
+}
+
 type Garden struct {
 	gorm.Model
 	Name        string  `json:"name"`
@@ -265,11 +270,12 @@ type UserUseCase interface {
 	Update(user *UserForm, uid string) (int, error)
 	Delete(user *User, uid string) (int, error)
 
-	CreateType(usertype *UserType, uid string) (int, error)
+	CreateType(usertype *UserType, uid uint) (int, error)
 	ReadType(id string, uid string) ([]UserType, int, error)
 	UpdateAccess(access *AccessForm, uid string) (int, error)
 	UpdateType(usertype *UserTypeForm, uid string) (int, error)
 	DeleteType(usertype *UserType, uid string) (int, error)
+	Access(url string, uid uint) (CheckAccessForm, error)
 }
 
 type TagUseCase interface {

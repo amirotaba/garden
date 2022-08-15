@@ -124,7 +124,7 @@ func (a *commentUsecase) Read(form domain.ReadCommentForm) ([]domain.Comment, in
 	if err != nil {
 		return []domain.Comment{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -170,7 +170,7 @@ func (a *commentUsecase) Update(comment *domain.CommentForm, uid string) (int, e
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -211,7 +211,7 @@ func (a *commentUsecase) Delete(comment *domain.Comment, uid string) (int, error
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {

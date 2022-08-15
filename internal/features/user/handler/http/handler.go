@@ -2,7 +2,8 @@ package user
 
 import (
 	"garden/internal/domain"
-	"garden/internal/pkg/jwt"
+	"garden/internal/middleware/access"
+	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
@@ -20,6 +21,8 @@ func NewHandler(e *echo.Echo, u domain.UserUseCase) {
 
 	res := e.Group("user/")
 	res.Use(middleware.JWTWithConfig(jwt.Config))
+	s := access.NewStats()
+	res.Use(s.Process)
 
 	e.POST("signUp", handler.SignUp)
 	e.POST("signIn", handler.SignIn)
@@ -123,7 +126,7 @@ func (m *Handler) DeleteUser(e echo.Context) error {
 }
 
 func (m *Handler) CreateUserType(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
+	uid := jwt.UserID(e)
 	usertype := new(domain.UserType)
 	if err := e.Bind(usertype); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())

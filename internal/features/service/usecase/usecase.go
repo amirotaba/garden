@@ -49,7 +49,7 @@ func (a *ServiceUsecase) Read(uid string) ([]domain.Service, int, error) {
 	if err != nil {
 		return []domain.Service{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -87,7 +87,7 @@ func (a *ServiceUsecase) Update(service *domain.ServiceForm, uid string) (int, e
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -124,7 +124,7 @@ func (a *ServiceUsecase) Delete(service *domain.Service, uid string) (int, error
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {

@@ -42,7 +42,7 @@ func (a *TagUsecase) Create(tag *domain.Tag, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -79,7 +79,7 @@ func (a *TagUsecase) Read(pageNumber string, uid string) ([]domain.Tag, int, err
 	if err != nil {
 		return []domain.Tag{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -134,7 +134,7 @@ func (a *TagUsecase) Update(tag *domain.TagForm, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -171,7 +171,7 @@ func (a *TagUsecase) Delete(tag *domain.Tag, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -208,7 +208,7 @@ func (a *TagUsecase) CreateTree(tree *domain.Tree, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {

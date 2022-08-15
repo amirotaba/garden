@@ -40,7 +40,7 @@ func (a *TreeUsecase) Create(tree *domain.Tree, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -78,7 +78,7 @@ func (a *TreeUsecase) Read(form domain.ReadTreeForm) ([]domain.Tree, int, error)
 	if err != nil {
 		return []domain.Tree{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -168,7 +168,7 @@ func (a *TreeUsecase) Update(tree *domain.TreeForm, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -205,7 +205,7 @@ func (a *TreeUsecase) Delete(tree *domain.Tree, uid string) (int, error) {
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -242,7 +242,7 @@ func (a *TreeUsecase) CreateType(treeType *domain.TreeType, uid string) (int, er
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -279,7 +279,7 @@ func (a *TreeUsecase) ReadType(id string, uid string) ([]domain.TreeType, int, e
 	if err != nil {
 		return []domain.TreeType{}, 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -325,7 +325,7 @@ func (a *TreeUsecase) UpdateType(treeType *domain.TreeTypeForm, uid string) (int
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -362,7 +362,7 @@ func (a *TreeUsecase) DeleteType(tree *domain.TreeType, uid string) (int, error)
 	if err != nil {
 		return 400, err
 	}
-	List := strings.Split(t[0].AccessList, ",")
+	List := strings.Split(t.AccessList, ",")
 	for _, v := range List {
 		i, err := strconv.Atoi(v)
 		if err != nil {
