@@ -1,7 +1,7 @@
 package tag
 
 import (
-	"garden/internal/domain"
+	"garden/internal/domain/tag"
 	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -9,10 +9,10 @@ import (
 )
 
 type Handler struct {
-	UseCase domain.TagUseCase
+	UseCase tagDomain.TagUseCase
 }
 
-func NewHandler(e *echo.Echo, u domain.TagUseCase) {
+func NewHandler(e *echo.Echo, u tagDomain.TagUseCase) {
 	handler := &Handler{
 		UseCase: u,
 	}
@@ -28,12 +28,12 @@ func NewHandler(e *echo.Echo, u domain.TagUseCase) {
 }
 
 func (m *Handler) CreateTag(e echo.Context) error {
-	tag := new(domain.Tag)
-	if err := e.Bind(tag); err != nil {
+	var tag tagDomain.Tag
+	if err := e.Bind(&tag); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Create(tag)
+	err := m.UseCase.Create(&tag)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -59,12 +59,12 @@ func (m *Handler) ReadTagID(e echo.Context) error {
 }
 
 func (m *Handler) UpdateTag(e echo.Context) error {
-	tag := new(domain.TagForm)
-	if err := e.Bind(tag); err != nil {
+	var tag tagDomain.TagForm
+	if err := e.Bind(&tag); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Update(tag)
+	err := m.UseCase.Update(&tag)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -72,12 +72,12 @@ func (m *Handler) UpdateTag(e echo.Context) error {
 }
 
 func (m *Handler) DeleteTag(e echo.Context) error {
-	tag := new(domain.Tag)
-	if err := e.Bind(tag); err != nil {
+	var tag tagDomain.Tag
+	if err := e.Bind(&tag); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Delete(tag)
+	err := m.UseCase.Delete(&tag)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

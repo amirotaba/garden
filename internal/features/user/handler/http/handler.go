@@ -1,7 +1,7 @@
 package user
 
 import (
-	"garden/internal/domain"
+	"garden/internal/domain/user"
 	"garden/internal/middleware/access"
 	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
@@ -11,10 +11,10 @@ import (
 )
 
 type Handler struct {
-	UseCase domain.UserUseCase
+	UseCase userDomain.UserUseCase
 }
 
-func NewHandler(e *echo.Echo, u domain.UserUseCase) {
+func NewHandler(e *echo.Echo, u userDomain.UserUseCase) {
 	handler := &Handler{
 		UseCase: u,
 	}
@@ -33,17 +33,17 @@ func NewHandler(e *echo.Echo, u domain.UserUseCase) {
 }
 
 func (m *Handler) SignIn(e echo.Context) error {
-	loginForm := new(domain.LoginForm)
-	if err := e.Bind(loginForm); err != nil {
+	var loginForm userDomain.LoginForm
+	if err := e.Bind(&loginForm); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	u, err := m.UseCase.SignIn(loginForm)
+	u, err := m.UseCase.SignIn(&loginForm)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	msg := domain.AuthMessage{
+	msg := userDomain.AuthMessage{
 		Text:     "you logged in successfully",
 		UserInfo: u,
 	}
@@ -51,8 +51,8 @@ func (m *Handler) SignIn(e echo.Context) error {
 }
 
 func (m *Handler) SignUp(e echo.Context) error {
-	var user domain.User
-	if err := e.Bind(user); err != nil {
+	var user userDomain.User
+	if err := e.Bind(&user); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
@@ -65,7 +65,7 @@ func (m *Handler) SignUp(e echo.Context) error {
 }
 
 func (m *Handler) Account(e echo.Context) error {
-	form := domain.AccountForm{
+	form := userDomain.AccountForm{
 		Uid:        jwt.UserID(e),
 		Tp:         e.QueryParam("type"),
 		PageNumber: e.QueryParam("page"),
@@ -79,7 +79,7 @@ func (m *Handler) Account(e echo.Context) error {
 
 func (m *Handler) UserAccount(e echo.Context) error {
 	// use struct instead of map
-	form := domain.UserAccountForm{
+	form := userDomain.UserAccountForm{
 		Uid:      strconv.Itoa(int(jwt.UserID(e))),
 		Username: e.QueryParam("username"),
 		ID:       e.QueryParam("id"),
@@ -92,12 +92,12 @@ func (m *Handler) UserAccount(e echo.Context) error {
 }
 
 func (m *Handler) UpdateUser(e echo.Context) error {
-	user := new(domain.UserForm)
-	if err := e.Bind(user); err != nil {
+	var user userDomain.UserForm
+	if err := e.Bind(&user); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Update(user)
+	err := m.UseCase.Update(&user)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -105,12 +105,12 @@ func (m *Handler) UpdateUser(e echo.Context) error {
 }
 
 func (m *Handler) DeleteUser(e echo.Context) error {
-	user := new(domain.User)
-	if err := e.Bind(user); err != nil {
+	var user userDomain.User
+	if err := e.Bind(&user); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Delete(user)
+	err := m.UseCase.Delete(&user)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

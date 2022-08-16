@@ -1,13 +1,12 @@
 package jwt
 
 import (
+	"garden/internal/domain/user"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-
-	"garden/internal/domain"
 )
 
 type jwtCustomClaims struct {
@@ -23,7 +22,7 @@ var Config = middleware.JWTConfig{
 	SigningKey: signingKey,
 }
 
-func GenerateToken(user domain.User) (string, error) {
+func GenerateToken(user userDomain.User) (string, error) {
 	claims := &jwtCustomClaims{
 		user.ID,
 		user.Name,

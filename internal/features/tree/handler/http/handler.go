@@ -1,7 +1,7 @@
 package tree
 
 import (
-	"garden/internal/domain"
+	"garden/internal/domain/tree"
 	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,10 +10,10 @@ import (
 )
 
 type Handler struct {
-	UseCase domain.TreeUseCase
+	UseCase treeDomain.TreeUseCase
 }
 
-func NewHandler(e *echo.Echo, u domain.TreeUseCase) {
+func NewHandler(e *echo.Echo, u treeDomain.TreeUseCase) {
 	handler := &Handler{
 		UseCase: u,
 	}
@@ -29,12 +29,12 @@ func NewHandler(e *echo.Echo, u domain.TreeUseCase) {
 }
 
 func (m *Handler) Create(e echo.Context) error {
-	tree := new(domain.Tree)
-	if err := e.Bind(tree); err != nil {
+	var tree treeDomain.Tree
+	if err := e.Bind(&tree); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Create(tree)
+	err := m.UseCase.Create(&tree)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -42,7 +42,7 @@ func (m *Handler) Create(e echo.Context) error {
 }
 
 func (m *Handler) Read(e echo.Context) error {
-	form := domain.ReadTreeForm{
+	form := treeDomain.ReadTreeForm{
 		Uid:        strconv.Itoa(int(jwt.UserID(e))),
 		GardenID:   e.QueryParam("garden_id"),
 		Tp:         e.QueryParam("type"),
@@ -56,7 +56,7 @@ func (m *Handler) Read(e echo.Context) error {
 }
 
 func (m *Handler) ReadUser(e echo.Context) error {
-	form := domain.ReadTreeUserForm{
+	form := treeDomain.ReadTreeUserForm{
 		ID:       e.QueryParam("id"),
 		GardenID: e.QueryParam("garden_id"),
 	}
@@ -68,12 +68,12 @@ func (m *Handler) ReadUser(e echo.Context) error {
 }
 
 func (m *Handler) Update(e echo.Context) error {
-	tree := new(domain.TreeForm)
-	if err := e.Bind(tree); err != nil {
+	var tree treeDomain.TreeForm
+	if err := e.Bind(&tree); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Update(tree)
+	err := m.UseCase.Update(&tree)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -81,12 +81,12 @@ func (m *Handler) Update(e echo.Context) error {
 }
 
 func (m *Handler) Delete(e echo.Context) error {
-	tree := new(domain.Tree)
-	if err := e.Bind(tree); err != nil {
+	var tree treeDomain.Tree
+	if err := e.Bind(&tree); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Delete(tree)
+	err := m.UseCase.Delete(&tree)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

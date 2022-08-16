@@ -1,7 +1,7 @@
 package gardenLoc
 
 import (
-	"garden/internal/domain"
+	"garden/internal/domain/gardenLocation"
 	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -9,10 +9,10 @@ import (
 )
 
 type Handler struct {
-	UseCase domain.GardenLocUseCase
+	UseCase gardenLocationDomain.GardenLocUseCase
 }
 
-func NewHandler(e *echo.Echo, useCase domain.GardenLocUseCase) {
+func NewHandler(e *echo.Echo, useCase gardenLocationDomain.GardenLocUseCase) {
 	handler := &Handler{
 		UseCase: useCase,
 	}
@@ -27,12 +27,12 @@ func NewHandler(e *echo.Echo, useCase domain.GardenLocUseCase) {
 }
 
 func (m *Handler) Create(e echo.Context) error {
-	location := new(domain.GardenLocation)
-	if err := e.Bind(location); err != nil {
+	var loc gardenLocationDomain.GardenLocation
+	if err := e.Bind(&loc); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Create(location)
+	err := m.UseCase.Create(&loc)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -40,7 +40,7 @@ func (m *Handler) Create(e echo.Context) error {
 }
 
 func (m *Handler) Read(e echo.Context) error {
-	form := domain.GardenLocRead{
+	form := gardenLocationDomain.GardenLocRead{
 		GardenID:   e.QueryParam("garden_id"),
 		PageNumber: e.QueryParam("page"),
 	}
@@ -52,12 +52,12 @@ func (m *Handler) Read(e echo.Context) error {
 }
 
 func (m *Handler) Update(e echo.Context) error {
-	loc := new(domain.GardenLocationForm)
-	if err := e.Bind(loc); err != nil {
+	var loc gardenLocationDomain.GardenLocationForm
+	if err := e.Bind(&loc); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Update(loc)
+	err := m.UseCase.Update(&loc)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -65,12 +65,12 @@ func (m *Handler) Update(e echo.Context) error {
 }
 
 func (m *Handler) Delete(e echo.Context) error {
-	loc := new(domain.GardenLocation)
-	if err := e.Bind(loc); err != nil {
+	var loc gardenLocationDomain.GardenLocation
+	if err := e.Bind(&loc); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Delete(loc)
+	err := m.UseCase.Delete(&loc)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

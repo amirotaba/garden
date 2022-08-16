@@ -1,7 +1,7 @@
 package comment
 
 import (
-	"garden/internal/domain"
+	"garden/internal/domain/comment"
 	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,10 +10,10 @@ import (
 )
 
 type Handler struct {
-	UseCase domain.CommentUseCase
+	UseCase commentDomain.CommentUseCase
 }
 
-func NewHandler(e *echo.Echo, useCase domain.CommentUseCase) {
+func NewHandler(e *echo.Echo, useCase commentDomain.CommentUseCase) {
 	handler := &Handler{
 		UseCase: useCase,
 	}
@@ -28,11 +28,11 @@ func NewHandler(e *echo.Echo, useCase domain.CommentUseCase) {
 }
 
 func (m *Handler) CreateComment(e echo.Context) error {
-	form := new(domain.Comment)
-	if err := e.Bind(form); err != nil {
+	var form commentDomain.Comment
+	if err := e.Bind(&form); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	err := m.UseCase.Create(form)
+	err := m.UseCase.Create(&form)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -40,7 +40,7 @@ func (m *Handler) CreateComment(e echo.Context) error {
 }
 
 func (m *Handler) ReadComment(e echo.Context) error {
-	form := domain.ReadCommentForm{
+	form := commentDomain.ReadCommentForm{
 		ID:         e.QueryParam("id"),
 		TreeID:     e.QueryParam("tree_id"),
 		TagID:      e.QueryParam("tag_id"),
@@ -56,13 +56,13 @@ func (m *Handler) ReadComment(e echo.Context) error {
 }
 
 func (m *Handler) UpdateComment(e echo.Context) error {
-	form := new(domain.UpdateCommentForm)
-	if err := e.Bind(form.Comment); err != nil {
+	var form commentDomain.UpdateCommentForm
+	if err := e.Bind(&form.Comment); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	form.Uid = jwt.UserID(e)
-	err := m.UseCase.Update(form)
+	err := m.UseCase.Update(&form)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -70,13 +70,13 @@ func (m *Handler) UpdateComment(e echo.Context) error {
 }
 
 func (m *Handler) DeleteComment(e echo.Context) error {
-	form := new(domain.UpdateCommentForm)
-	if err := e.Bind(form.Comment); err != nil {
+	var form commentDomain.UpdateCommentForm
+	if err := e.Bind(&form.Comment); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	form.Uid = jwt.UserID(e)
-	err := m.UseCase.Delete(form)
+	err := m.UseCase.Delete(&form)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

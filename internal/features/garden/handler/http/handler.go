@@ -1,7 +1,7 @@
 package garden
 
 import (
-	"garden/internal/domain"
+	"garden/internal/domain/garden"
 	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,10 +10,10 @@ import (
 )
 
 type Handler struct {
-	UseCase domain.GardenUseCase
+	UseCase gardenDomain.GardenUseCase
 }
 
-func NewHandler(e *echo.Echo, useCase domain.GardenUseCase) {
+func NewHandler(e *echo.Echo, useCase gardenDomain.GardenUseCase) {
 	handler := &Handler{
 		UseCase: useCase,
 	}
@@ -28,12 +28,12 @@ func NewHandler(e *echo.Echo, useCase domain.GardenUseCase) {
 }
 
 func (m *Handler) Create(e echo.Context) error {
-	garden := new(domain.Garden)
-	if err := e.Bind(garden); err != nil {
+	var garden gardenDomain.Garden
+	if err := e.Bind(&garden); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Create(garden)
+	err := m.UseCase.Create(&garden)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -41,7 +41,7 @@ func (m *Handler) Create(e echo.Context) error {
 }
 
 func (m *Handler) Read(e echo.Context) error {
-	form := domain.ReadGardenForm{
+	form := gardenDomain.ReadGardenForm{
 		Uid:        strconv.Itoa(int(jwt.UserID(e))),
 		UserID:     e.QueryParam("user_id"),
 		PageNumber: e.QueryParam("page"),
@@ -55,12 +55,12 @@ func (m *Handler) Read(e echo.Context) error {
 }
 
 func (m *Handler) Update(e echo.Context) error {
-	garden := new(domain.GardenForm)
+	var garden gardenDomain.GardenForm
 	if err := e.Bind(garden); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Update(garden)
+	err := m.UseCase.Update(&garden)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -68,12 +68,12 @@ func (m *Handler) Update(e echo.Context) error {
 }
 
 func (m *Handler) Delete(e echo.Context) error {
-	garden := new(domain.Garden)
+	var garden gardenDomain.Garden
 	if err := e.Bind(garden); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Delete(garden)
+	err := m.UseCase.Delete(&garden)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

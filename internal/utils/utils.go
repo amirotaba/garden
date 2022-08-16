@@ -2,6 +2,16 @@ package utils
 
 import (
 	"garden/internal/domain"
+	"garden/internal/domain/comment"
+	"garden/internal/domain/garden"
+	"garden/internal/domain/gardenLocation"
+	"garden/internal/domain/gardenType"
+	"garden/internal/domain/service"
+	"garden/internal/domain/tag"
+	"garden/internal/domain/tree"
+	"garden/internal/domain/treeType"
+	"garden/internal/domain/user"
+	"garden/internal/domain/userType"
 	"garden/internal/features/comment/handler/http"
 	"garden/internal/features/comment/repository/mysql"
 	"garden/internal/features/comment/usecase"
@@ -51,16 +61,16 @@ func Connection() *gorm.DB {
 }
 
 func Migrate(Db *gorm.DB) {
-	_ = Db.AutoMigrate(&domain.User{})
-	_ = Db.AutoMigrate(&domain.UserType{})
-	_ = Db.AutoMigrate(&domain.Garden{})
-	_ = Db.AutoMigrate(&domain.GardenType{})
-	_ = Db.AutoMigrate(&domain.Tree{})
-	_ = Db.AutoMigrate(&domain.TreeType{})
-	_ = Db.AutoMigrate(&domain.GardenLocation{})
-	_ = Db.AutoMigrate(&domain.Comment{})
-	_ = Db.AutoMigrate(&domain.Tag{})
-	_ = Db.AutoMigrate(&domain.Service{})
+	_ = Db.AutoMigrate(&userDomain.User{})
+	_ = Db.AutoMigrate(&userTypeDomain.UserType{})
+	_ = Db.AutoMigrate(&gardenDomain.Garden{})
+	_ = Db.AutoMigrate(&gardenTypeDomain.GardenType{})
+	_ = Db.AutoMigrate(&treeDomain.Tree{})
+	_ = Db.AutoMigrate(&treeTypeDomain.TreeType{})
+	_ = Db.AutoMigrate(&gardenLocationDomain.GardenLocation{})
+	_ = Db.AutoMigrate(&commentDomain.Comment{})
+	_ = Db.AutoMigrate(&tagDomain.Tag{})
+	_ = Db.AutoMigrate(&serviceDomain.Service{})
 }
 
 func NewRepository(Db *gorm.DB) domain.Repositories {
