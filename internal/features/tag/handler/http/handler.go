@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -29,62 +28,58 @@ func NewHandler(e *echo.Echo, u domain.TagUseCase) {
 }
 
 func (m *Handler) CreateTag(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	tag := new(domain.Tag)
 	if err := e.Bind(tag); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Create(tag, uid)
+	err := m.UseCase.Create(tag)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Tag added successfully")
+	return e.JSON(http.StatusCreated, "Tag added successfully")
 }
 
 func (m *Handler) ReadTag(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	pageNumber := e.QueryParam("page")
-	t, code, err := m.UseCase.Read(pageNumber, uid)
+	t, err := m.UseCase.Read(pageNumber)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, t)
+	return e.JSON(http.StatusOK, t)
 }
 
 func (m *Handler) ReadTagID(e echo.Context) error {
 	id := e.QueryParam("id")
-	t, code, err := m.UseCase.ReadID(id)
+	t, err := m.UseCase.ReadID(id)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, t)
+	return e.JSON(http.StatusOK, t)
 }
 
 func (m *Handler) UpdateTag(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	tag := new(domain.TagForm)
 	if err := e.Bind(tag); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Update(tag, uid)
+	err := m.UseCase.Update(tag)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Tag updated successfully")
+	return e.JSON(http.StatusOK, "Tag updated successfully")
 }
 
 func (m *Handler) DeleteTag(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	tag := new(domain.Tag)
 	if err := e.Bind(tag); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Delete(tag, uid)
+	err := m.UseCase.Delete(tag)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Tag deleted successfully")
+	return e.JSON(http.StatusOK, "Tag deleted successfully")
 }

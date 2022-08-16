@@ -32,11 +32,11 @@ func (m *Handler) CreateComment(e echo.Context) error {
 	if err := e.Bind(form); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	code, err := m.UseCase.Create(form)
+	err := m.UseCase.Create(form)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Comment added successfully")
+	return e.JSON(http.StatusCreated, "Comment added successfully")
 }
 
 func (m *Handler) ReadComment(e echo.Context) error {
@@ -48,37 +48,37 @@ func (m *Handler) ReadComment(e echo.Context) error {
 		PageNumber: e.QueryParam("page"),
 		Uid:        strconv.Itoa(int(jwt.UserID(e))),
 	}
-	comments, code, err := m.UseCase.Read(form)
+	comments, err := m.UseCase.Read(form)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, comments)
+	return e.JSON(http.StatusOK, comments)
 }
 
 func (m *Handler) UpdateComment(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
+	uid := jwt.UserID(e)
 	comment := new(domain.CommentForm)
 	if err := e.Bind(comment); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Update(comment, uid)
+	err := m.UseCase.Update(comment, uid)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "comment updated successfully")
+	return e.JSON(http.StatusOK, "comment updated successfully")
 }
 
 func (m *Handler) DeleteComment(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
+	uid := jwt.UserID(e)
 	comment := new(domain.Comment)
 	if err := e.Bind(comment); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Delete(comment, uid)
+	err := m.UseCase.Delete(comment, uid)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Comment has been removed.")
+	return e.JSON(http.StatusOK, "Comment has been removed.")
 }

@@ -21,179 +21,61 @@ func NewHandler(e *echo.Echo, useCase domain.GardenUseCase) {
 	res := e.Group("user/")
 	res.Use(middleware.JWTWithConfig(jwt.Config))
 
-	res.POST("garden/create", handler.CreateGarden)
-	res.GET("garden/read", handler.ReadGarden)
-	res.PATCH("garden/update", handler.UpdateGarden)
-	res.DELETE("garden/delete", handler.DeleteGarden)
-
-	res.POST("loc/create", handler.CreateLocation)
-	res.GET("loc/read", handler.ReadLocation)
-	res.PATCH("loc/update", handler.UpdateLocation)
-	res.DELETE("loc/delete", handler.DeleteLocation)
-
-	res.POST("garden/type/create", handler.CreateGardenType)
-	res.GET("garden/type/read", handler.ReadGardenType)
-	res.PATCH("garden/type/update", handler.UpdateGardenType)
-	res.DELETE("garden/type/delete", handler.DeleteGardenType)
+	res.POST("garden/create", handler.Create)
+	res.GET("garden/read", handler.Read)
+	res.PATCH("garden/update", handler.Update)
+	res.DELETE("garden/delete", handler.Delete)
 }
 
-func (m *Handler) CreateGarden(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
+func (m *Handler) Create(e echo.Context) error {
 	garden := new(domain.Garden)
 	if err := e.Bind(garden); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Create(garden, uid)
+	err := m.UseCase.Create(garden)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Garden added successfully.")
+	return e.JSON(http.StatusCreated, "Garden added successfully.")
 }
 
-func (m *Handler) ReadGarden(e echo.Context) error {
+func (m *Handler) Read(e echo.Context) error {
 	form := domain.ReadGardenForm{
 		Uid:        strconv.Itoa(int(jwt.UserID(e))),
 		UserID:     e.QueryParam("user_id"),
 		PageNumber: e.QueryParam("page"),
 		ID:         e.QueryParam("id"),
 	}
-	g, code, err := m.UseCase.Read(form)
+	g, err := m.UseCase.Read(form)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, g)
+	return e.JSON(http.StatusOK, g)
 }
 
-func (m *Handler) UpdateGarden(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
+func (m *Handler) Update(e echo.Context) error {
 	garden := new(domain.GardenForm)
 	if err := e.Bind(garden); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Update(garden, uid)
+	err := m.UseCase.Update(garden)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Garden updated successfully")
+	return e.JSON(http.StatusOK, "Garden updated successfully")
 }
 
-func (m *Handler) DeleteGarden(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
+func (m *Handler) Delete(e echo.Context) error {
 	garden := new(domain.Garden)
 	if err := e.Bind(garden); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Delete(garden, uid)
+	err := m.UseCase.Delete(garden)
 	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, "Garden has been removed.")
-}
-
-func (m *Handler) CreateLocation(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	location := new(domain.GardenLocation)
-	if err := e.Bind(location); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-
-	code, err := m.UseCase.CreateLocation(location, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, "Location added successfully.")
-}
-
-func (m *Handler) ReadLocation(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	gid := e.QueryParam("garden_id")
-	pageNumber := e.QueryParam("page")
-	t, code, err := m.UseCase.ReadLocation(gid, pageNumber, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, t)
-}
-
-func (m *Handler) UpdateLocation(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	loc := new(domain.GardenLocationForm)
-	if err := e.Bind(loc); err != nil {
-		return e.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	code, err := m.UseCase.UpdateLocation(loc, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, "Location updated successfully")
-}
-
-func (m *Handler) DeleteLocation(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	loc := new(domain.GardenLocation)
-	if err := e.Bind(loc); err != nil {
-		return e.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	code, err := m.UseCase.DeleteLocation(loc, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, "Location deleted successfully")
-}
-
-func (m *Handler) CreateGardenType(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	gardenType := new(domain.GardenType)
-	if err := e.Bind(gardenType); err != nil {
-		return e.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	code, err := m.UseCase.CreateType(gardenType, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, "Garden type added successfully")
-}
-
-func (m *Handler) ReadGardenType(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	id := e.QueryParam("id")
-	t, code, err := m.UseCase.ReadType(id, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, t)
-}
-
-func (m *Handler) UpdateGardenType(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	gardenType := new(domain.GardenTypeForm)
-	if err := e.Bind(gardenType); err != nil {
-		return e.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	code, err := m.UseCase.UpdateType(gardenType, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, "Garden type updated successfully")
-}
-
-func (m *Handler) DeleteGardenType(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	gardenType := new(domain.GardenType)
-	if err := e.Bind(gardenType); err != nil {
-		return e.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	code, err := m.UseCase.DeleteType(gardenType, uid)
-	if err != nil {
-		return e.JSON(code, err.Error())
-	}
-	return e.JSON(code, "Garden type deleted successfully")
+	return e.JSON(http.StatusOK, "Garden has been removed.")
 }

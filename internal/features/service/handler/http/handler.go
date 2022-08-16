@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
-	"strconv"
 )
 
 type Handler struct {
@@ -35,48 +34,45 @@ func (m *Handler) CreateService(e echo.Context) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Create(service)
+	err := m.UseCase.Create(service)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Service added successfully")
+	return e.JSON(http.StatusCreated, "Service added successfully")
 }
 
 func (m *Handler) ReadService(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
-	t, code, err := m.UseCase.Read(uid)
+	t, err := m.UseCase.Read()
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, t)
+	return e.JSON(http.StatusOK, t)
 }
 
 func (m *Handler) UpdateService(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	service := new(domain.ServiceForm)
 	if err := e.Bind(service); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Update(service, uid)
+	err := m.UseCase.Update(service)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "User type updated successfully")
+	return e.JSON(http.StatusOK, "User type updated successfully")
 }
 
 func (m *Handler) DeleteService(e echo.Context) error {
-	uid := strconv.Itoa(int(jwt.UserID(e)))
 	service := new(domain.Service)
 	if err := e.Bind(service); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	code, err := m.UseCase.Delete(service, uid)
+	err := m.UseCase.Delete(service)
 	if err != nil {
-		return e.JSON(code, err.Error())
+		return e.JSON(http.StatusBadRequest, err.Error())
 	}
-	return e.JSON(code, "Service deleted successfully")
+	return e.JSON(http.StatusOK, "Service deleted successfully")
 }
 
 func (m *Handler) addRoutes(e *echo.Echo) {
@@ -87,6 +83,6 @@ func (m *Handler) addRoutes(e *echo.Echo) {
 			Url:    r[i].Path,
 			Method: r[i].Method,
 		}
-		_, _ = m.UseCase.Create(service)
+		_ = m.UseCase.Create(service)
 	}
 }
