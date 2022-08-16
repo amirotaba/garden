@@ -24,6 +24,7 @@ func (a *Usecase) Create(tree *domain.Tree) error {
 }
 
 func (a *Usecase) Read(form domain.ReadTreeForm) ([]domain.Tree, error) {
+	var readFormType domain.ReadTreeType
 	if form.PageNumber == "" {
 		form.PageNumber = "1"
 	}
@@ -31,13 +32,17 @@ func (a *Usecase) Read(form domain.ReadTreeForm) ([]domain.Tree, error) {
 	if err != nil {
 		return []domain.Tree{}, err
 	}
-	span := nInt * 10
+	readFormType.Span = nInt * 10
 	if form.GardenID != "" {
 		idInt, err := strconv.Atoi(form.GardenID)
 		if err != nil {
 			return []domain.Tree{}, err
 		}
-		t, err := a.TreeRepo.ReadID(uint(idInt), "garden_id = ?")
+		readForm := domain.ReadTreeID{
+			Query: "garden_id = ?",
+			ID:    uint(idInt),
+		}
+		t, err := a.TreeRepo.ReadID(readForm)
 		if err != nil {
 			return []domain.Tree{}, err
 		}
@@ -47,13 +52,14 @@ func (a *Usecase) Read(form domain.ReadTreeForm) ([]domain.Tree, error) {
 		if err != nil {
 			return []domain.Tree{}, err
 		}
-		t, err := a.TreeRepo.ReadByType(uint(idInt), span)
+		readFormType.ID = uint(idInt)
+		t, err := a.TreeRepo.ReadByType(readFormType)
 		if err != nil {
 			return []domain.Tree{}, err
 		}
 		return t, nil
 	}
-	b, err := a.TreeRepo.Read(span)
+	b, err := a.TreeRepo.Read(readFormType.Span)
 	if err != nil {
 		return []domain.Tree{}, err
 	}
@@ -61,12 +67,17 @@ func (a *Usecase) Read(form domain.ReadTreeForm) ([]domain.Tree, error) {
 }
 
 func (a *Usecase) ReadUser(form domain.ReadTreeUserForm) ([]domain.Tree, error) {
+	var readForm domain.ReadTreeID
 	if form.GardenID != "" {
 		idInt, err := strconv.Atoi(form.GardenID)
 		if err != nil {
 			return []domain.Tree{}, err
 		}
-		t, err := a.TreeRepo.ReadID(uint(idInt), "garden_id = ?")
+		readForm = domain.ReadTreeID{
+			Query: "garden_id = ?",
+			ID:    uint(idInt),
+		}
+		t, err := a.TreeRepo.ReadID(readForm)
 		if err != nil {
 			return []domain.Tree{}, err
 		}
@@ -76,7 +87,11 @@ func (a *Usecase) ReadUser(form domain.ReadTreeUserForm) ([]domain.Tree, error) 
 	if err != nil {
 		return []domain.Tree{}, err
 	}
-	t, err := a.TreeRepo.ReadID(uint(idInt), "id = ?")
+	readForm = domain.ReadTreeID{
+		Query: "id = ?",
+		ID:    uint(idInt),
+	}
+	t, err := a.TreeRepo.ReadID(readForm)
 	if err != nil {
 		return []domain.Tree{}, err
 	}

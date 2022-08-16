@@ -24,6 +24,7 @@ func (a *usecase) Create(comment *domain.Comment) error {
 }
 
 func (a *usecase) Read(form domain.ReadCommentForm) ([]domain.Comment, error) {
+	var readForm domain.ReadComment
 	if form.ID != "" {
 		if form.PageNumber == "" {
 			form.PageNumber = "1"
@@ -32,13 +33,17 @@ func (a *usecase) Read(form domain.ReadCommentForm) ([]domain.Comment, error) {
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		span := nInt * 10
 		idInt, err := strconv.Atoi(form.ID)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		q := "id = ?"
-		t, err := a.CommentRepo.ReadID(uint(idInt), q, span)
+
+		readForm = domain.ReadComment{
+			ID:    uint(idInt),
+			Query: "id = ?",
+			Span:  nInt * 10,
+		}
+		t, err := a.CommentRepo.ReadID(readForm)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
@@ -51,13 +56,18 @@ func (a *usecase) Read(form domain.ReadCommentForm) ([]domain.Comment, error) {
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		span := nInt * 10
 		idInt, err := strconv.Atoi(form.TreeID)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		q := "tree_id = ?"
-		t, err := a.CommentRepo.ReadID(uint(idInt), q, span)
+
+		readForm = domain.ReadComment{
+			ID:    uint(idInt),
+			Query: "tree_id = ?",
+			Span:  nInt * 10,
+		}
+
+		t, err := a.CommentRepo.ReadID(readForm)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
@@ -70,13 +80,18 @@ func (a *usecase) Read(form domain.ReadCommentForm) ([]domain.Comment, error) {
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		span := nInt * 10
 		idInt, err := strconv.Atoi(form.ID)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		q := "tag_id = ?"
-		t, err := a.CommentRepo.ReadID(uint(idInt), q, span)
+
+		readForm = domain.ReadComment{
+			ID:    uint(idInt),
+			Query: "tag_id = ?",
+			Span:  nInt * 10,
+		}
+
+		t, err := a.CommentRepo.ReadID(readForm)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
@@ -89,13 +104,18 @@ func (a *usecase) Read(form domain.ReadCommentForm) ([]domain.Comment, error) {
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		span := nInt * 10
 		idInt, err := strconv.Atoi(form.UserID)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
-		q := "user_id = ?"
-		t, err := a.CommentRepo.ReadID(uint(idInt), q, span)
+
+		readForm = domain.ReadComment{
+			ID:    uint(idInt),
+			Query: "user_id = ?",
+			Span:  nInt * 10,
+		}
+
+		t, err := a.CommentRepo.ReadID(readForm)
 		if err != nil {
 			return []domain.Comment{}, err
 		}
@@ -116,26 +136,39 @@ func (a *usecase) Read(form domain.ReadCommentForm) ([]domain.Comment, error) {
 	return c, nil
 }
 
-func (a *usecase) Update(comment *domain.CommentForm, uid uint) error {
-	c, err := a.CommentRepo.ReadID(comment.ID, "id", 1)
+func (a *usecase) Update(form *domain.UpdateCommentForm) error {
+	readForm := domain.ReadComment{
+		ID:    form.Comment.ID,
+		Query: "id = ?",
+		Span:  1,
+	}
+
+	c, err := a.CommentRepo.ReadID(readForm)
 	if err != nil {
 		return err
 	}
-	if int(c[0].ID) == int(uid) {
-		if err := a.CommentRepo.Update(comment); err != nil {
+
+	if int(c[0].ID) == int(form.Uid) {
+		if err := a.CommentRepo.Update(form.Comment); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (a *usecase) Delete(comment *domain.Comment, uid uint) error {
-	c, err := a.CommentRepo.ReadID(comment.ID, "id", 1)
+func (a *usecase) Delete(form *domain.UpdateCommentForm) error {
+	readForm := domain.ReadComment{
+		ID:    form.Comment.ID,
+		Query: "id = ?",
+		Span:  1,
+	}
+
+	c, err := a.CommentRepo.ReadID(readForm)
 	if err != nil {
 		return err
 	}
-	if int(c[0].ID) == int(uid) {
-		if err := a.CommentRepo.Delete(comment.ID); err != nil {
+	if int(c[0].ID) == int(form.Uid) {
+		if err := a.CommentRepo.Delete(form.Comment.ID); err != nil {
 			return err
 		}
 	}

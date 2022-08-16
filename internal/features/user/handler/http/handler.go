@@ -92,13 +92,12 @@ func (m *Handler) UserAccount(e echo.Context) error {
 }
 
 func (m *Handler) UpdateUser(e echo.Context) error {
-	uid := jwt.UserID(e)
 	user := new(domain.UserForm)
 	if err := e.Bind(user); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Update(user, uid)
+	err := m.UseCase.Update(user)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -106,13 +105,12 @@ func (m *Handler) UpdateUser(e echo.Context) error {
 }
 
 func (m *Handler) DeleteUser(e echo.Context) error {
-	uid := jwt.UserID(e)
 	user := new(domain.User)
 	if err := e.Bind(user); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Delete(user, uid)
+	err := m.UseCase.Delete(user)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

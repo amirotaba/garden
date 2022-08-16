@@ -30,17 +30,17 @@ func (m *mysqlTreeRepository) Read(n int) ([]domain.Tree, error) {
 	return tree, nil
 }
 
-func (m *mysqlTreeRepository) ReadID(id uint, q string) ([]domain.Tree, error) {
+func (m *mysqlTreeRepository) ReadID(form domain.ReadTreeID) ([]domain.Tree, error) {
 	var tType []domain.Tree
-	if err := m.Conn.Where(q, id).First(&tType).Error; err != nil {
+	if err := m.Conn.Where(form.Query, form.ID).First(&tType).Error; err != nil {
 		return []domain.Tree{}, err
 	}
 	return tType, nil
 }
 
-func (m *mysqlTreeRepository) ReadByType(t uint, n int) ([]domain.Tree, error) {
+func (m *mysqlTreeRepository) ReadByType(form domain.ReadTreeType) ([]domain.Tree, error) {
 	var tType []domain.Tree
-	if err := m.Conn.Limit(n).Where("type = ?", t).First(&tType).Error; err != nil {
+	if err := m.Conn.Limit(form.Span).Where("type = ?", form.ID).First(&tType).Error; err != nil {
 		return []domain.Tree{}, err
 	}
 	return tType, nil

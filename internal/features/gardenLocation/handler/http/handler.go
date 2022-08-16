@@ -40,9 +40,11 @@ func (m *Handler) Create(e echo.Context) error {
 }
 
 func (m *Handler) Read(e echo.Context) error {
-	gid := e.QueryParam("garden_id")
-	pageNumber := e.QueryParam("page")
-	t, err := m.UseCase.Read(gid, pageNumber)
+	form := domain.GardenLocRead{
+		GardenID:   e.QueryParam("garden_id"),
+		PageNumber: e.QueryParam("page"),
+	}
+	t, err := m.UseCase.Read(form)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

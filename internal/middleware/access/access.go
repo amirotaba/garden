@@ -4,10 +4,14 @@ import (
 	"garden/internal/domain"
 	"garden/internal/features/comment/repository/mysql"
 	"garden/internal/features/garden/repository/mysql"
+	gardenLocRepo "garden/internal/features/gardenLocation/repository/mysql"
+	gardenTypeRepo "garden/internal/features/gardenType/repository/mysql"
 	"garden/internal/features/service/repository/mysql"
 	"garden/internal/features/tag/repository/mysql"
 	"garden/internal/features/tree/repository/mysql"
+	treeTypeRepo "garden/internal/features/treeType/repository/mysql"
 	"garden/internal/features/user/repository/mysql"
+	userTypeRepo "garden/internal/features/userType/repository/mysql"
 	"garden/internal/middleware/jwt"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/mysql"
@@ -45,12 +49,16 @@ func (s *Stats) Process(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		repo := domain.Repositories{
-			User:    userRepo.NewMysqlRepository(Db),
-			Tag:     tagRepo.NewMysqlRepository(Db),
-			Garden:  gardenRepo.NewMysqlRepository(Db),
-			Tree:    treeRepo.NewMysqlRepository(Db),
-			Comment: commentRepo.NewMysqlRepository(Db),
-			Service: serviceRepo.NewMysqlRepository(Db),
+			User:       userRepo.NewMysqlRepository(Db),
+			UserType:   userTypeRepo.NewMysqlRepository(Db),
+			Tag:        tagRepo.NewMysqlRepository(Db),
+			Garden:     gardenRepo.NewMysqlRepository(Db),
+			GardenLoc:  gardenLocRepo.NewMysqlRepository(Db),
+			GardenType: gardenTypeRepo.NewMysqlRepository(Db),
+			Tree:       treeRepo.NewMysqlRepository(Db),
+			TreeType:   treeTypeRepo.NewMysqlRepository(Db),
+			Comment:    commentRepo.NewMysqlRepository(Db),
+			Service:    serviceRepo.NewMysqlRepository(Db),
 		}
 
 		//get the url
@@ -69,7 +77,7 @@ func (s *Stats) Process(next echo.HandlerFunc) echo.HandlerFunc {
 			return err
 		}
 
-		t, err := repo.User.ReadTypeID(u.Type)
+		t, err := repo.UserType.ReadID(u.Type)
 		if err != nil {
 			return err
 		}

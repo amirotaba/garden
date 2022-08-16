@@ -262,19 +262,50 @@ type ReadGardenForm struct {
 	ID         string
 }
 
+type GardenLocRead struct {
+	GardenID   string
+	PageNumber string
+}
+
+type UpdateCommentForm struct {
+	Comment CommentForm
+	Uid     uint
+}
+
+type UserReadForm struct {
+	Span   int
+	TypeID uint
+}
+
+type ReadTreeID struct {
+	Query string
+	ID    uint
+}
+
+type ReadTreeType struct {
+	ID   uint
+	Span int
+}
+
+type ReadComment struct {
+	ID    uint
+	Query string
+	Span  int
+}
+
 type UserUseCase interface {
 	Create(newUser User) (UserResponse, error)
 	SignIn(form *LoginForm) (UserResponse, error)
 	Read(form AccountForm) ([]UserResponse, error)
 	UserRead(form UserAccountForm) (UserResponse, error)
-	Update(user *UserForm, uid uint) error
-	Delete(user *User, uid uint) error
+	Update(user *UserForm) error
+	Delete(user *User) error
 }
 
 type UserTypeUseCase interface {
 	Create(usertype *UserType) error
 	Read(id string) ([]UserType, error)
-	UpdateAccess(access *AccessForm, uid uint) error
+	UpdateAccess(access *AccessForm) error
 	Update(usertype *UserTypeForm) error
 	Delete(usertype *UserType) error
 }
@@ -296,7 +327,7 @@ type GardenUseCase interface {
 
 type GardenLocUseCase interface {
 	Create(location *GardenLocation) error
-	Read(id string, pageNumber string) ([]GardenLocation, error)
+	Read(form GardenLocRead) ([]GardenLocation, error)
 	Update(loc *GardenLocationForm) error
 	Delete(loc *GardenLocation) error
 }
@@ -326,8 +357,8 @@ type TreeTypeUseCase interface {
 type CommentUseCase interface {
 	Create(comment *Comment) error
 	Read(form ReadCommentForm) ([]Comment, error)
-	Update(comment *CommentForm, uid uint) error
-	Delete(comment *Comment, uid uint) error
+	Update(form *UpdateCommentForm) error
+	Delete(form *UpdateCommentForm) error
 }
 
 type ServiceUseCase interface {
@@ -339,11 +370,10 @@ type ServiceUseCase interface {
 
 type UserRepository interface {
 	Create(newUser User) error
-	SignIn(form *LoginForm) (User, error)
 	Read(n int) ([]User, error)
-	ReadUsername(username string) (User, error)
 	ReadID(id uint) (User, error)
-	ReadByType(n int, tp uint) ([]User, error)
+	ReadByType(readForm UserReadForm) ([]User, error)
+	ReadUsername(username string) (User, error)
 	Update(user *UserForm) error
 	Delete(id uint) error
 }
@@ -354,7 +384,6 @@ type UserTypeRepository interface {
 	ReadID(id uint) (UserType, error)
 	Update(userType *UserTypeForm) error
 	Delete(id uint) error
-	ReadUser(id uint) (string, error)
 }
 
 type TagRepository interface {
@@ -393,8 +422,8 @@ type GardenTypeRepository interface {
 type TreeRepository interface {
 	Create(tree *Tree) error
 	Read(n int) ([]Tree, error)
-	ReadID(id uint, q string) ([]Tree, error)
-	ReadByType(t uint, n int) ([]Tree, error)
+	ReadID(readForm ReadTreeID) ([]Tree, error)
+	ReadByType(readForm ReadTreeType) ([]Tree, error)
 	Update(tree *TreeForm) error
 	Delete(id uint) error
 }
@@ -410,8 +439,8 @@ type TreeTypeRepository interface {
 type CommentRepository interface {
 	Create(comment *Comment) error
 	Read(n int) ([]Comment, error)
-	ReadID(id uint, q string, span int) ([]Comment, error)
-	Update(comment *CommentForm) error
+	ReadID(readForm ReadComment) ([]Comment, error)
+	Update(comment CommentForm) error
 	Delete(id uint) error
 }
 

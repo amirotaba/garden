@@ -8,9 +8,8 @@ import (
 )
 
 type Usecase struct {
-	UserTypeRepo 	domain.UserTypeRepository
-	UserRepo 		domain.UserRepository
-
+	UserTypeRepo domain.UserTypeRepository
+	UserRepo     domain.UserRepository
 }
 
 func NewUseCase(r domain.UserTypeRepository) domain.UserTypeUseCase {
@@ -51,8 +50,8 @@ func (a *Usecase) Update(usertype *domain.UserTypeForm) error {
 	return nil
 }
 
-func (a *Usecase) UpdateAccess(access *domain.AccessForm, uid uint) error {
-	u, err := a.UserRepo.ReadID(uid)
+func (a *Usecase) UpdateAccess(access *domain.AccessForm) error {
+	u, err := a.UserRepo.ReadID(access.ID)
 	if err != nil {
 		return err
 	}

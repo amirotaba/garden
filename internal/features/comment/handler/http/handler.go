@@ -56,13 +56,13 @@ func (m *Handler) ReadComment(e echo.Context) error {
 }
 
 func (m *Handler) UpdateComment(e echo.Context) error {
-	uid := jwt.UserID(e)
-	comment := new(domain.CommentForm)
-	if err := e.Bind(comment); err != nil {
+	form := new(domain.UpdateCommentForm)
+	if err := e.Bind(form.Comment); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Update(comment, uid)
+	form.Uid = jwt.UserID(e)
+	err := m.UseCase.Update(form)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -70,13 +70,13 @@ func (m *Handler) UpdateComment(e echo.Context) error {
 }
 
 func (m *Handler) DeleteComment(e echo.Context) error {
-	uid := jwt.UserID(e)
-	comment := new(domain.Comment)
-	if err := e.Bind(comment); err != nil {
+	form := new(domain.UpdateCommentForm)
+	if err := e.Bind(form.Comment); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.Delete(comment, uid)
+	form.Uid = jwt.UserID(e)
+	err := m.UseCase.Delete(form)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

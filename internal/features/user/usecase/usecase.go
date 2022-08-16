@@ -9,18 +9,19 @@ import (
 )
 
 type Usecase struct {
-	UserRepo 		domain.UserRepository
-	UserTypeRepo	domain.UserTypeRepository
+	UserRepo     domain.UserRepository
+	UserTypeRepo domain.UserTypeRepository
 }
 
-func NewUseCase(r domain.UserRepository) domain.UserUseCase {
+func NewUseCase(r domain.Repositories) domain.UserUseCase {
 	return &Usecase{
-		UserRepo: r,
+		UserRepo:     r.User,
+		UserTypeRepo: r.UserType,
 	}
 }
 
 func (a *Usecase) SignIn(form *domain.LoginForm) (domain.UserResponse, error) {
-	user, err := a.UserRepo.SignIn(form)
+	user, err := a.UserRepo.ReadUsername(form.Username)
 	if err != nil {
 		return domain.UserResponse{}, err
 	}
@@ -36,10 +37,11 @@ func (a *Usecase) SignIn(form *domain.LoginForm) (domain.UserResponse, error) {
 
 	var t domain.TypeStruct
 	t.ID = user.Type
-	t.Name, err = a.UserTypeRepo.ReadUser(t.ID)
+	tp, err := a.UserTypeRepo.ReadID(t.ID)
 	if err != nil {
 		return domain.UserResponse{}, err
 	}
+	t.Name = tp.Name
 
 	u := domain.UserResponse{
 		UserName: user.UserName,
@@ -47,7 +49,6 @@ func (a *Usecase) SignIn(form *domain.LoginForm) (domain.UserResponse, error) {
 		Token:    jwtsig,
 	}
 
-	// do not return status code in response
 	return u, nil
 }
 
@@ -91,15 +92,19 @@ func (a *Usecase) Read(form domain.AccountForm) ([]domain.UserResponse, error) {
 		if err != nil {
 			return []domain.UserResponse{}, err
 		}
-		span := nInt * 10
-		user, err := a.UserRepo.ReadByType(span, uint(tpInt))
+		readForm := domain.UserReadForm{
+			TypeID: uint(tpInt),
+			Span:   nInt * 10,
+		}
+		user, err := a.UserRepo.ReadByType(readForm)
 		for i := range user {
 			var t domain.TypeStruct
 			t.ID = user[i].Type
-			t.Name, err = a.UserTypeRepo.ReadUser(t.ID)
+			tp, err := a.UserTypeRepo.ReadID(t.ID)
 			if err != nil {
 				return []domain.UserResponse{}, err
 			}
+			t.Name = tp.Name
 			u := domain.UserResponse{
 				UserName: user[i].UserName,
 				Type:     t,
@@ -119,10 +124,11 @@ func (a *Usecase) Read(form domain.AccountForm) ([]domain.UserResponse, error) {
 	for i := range user {
 		var t domain.TypeStruct
 		t.ID = user[i].Type
-		t.Name, err = a.UserTypeRepo.ReadUser(t.ID)
+		tp, err := a.UserTypeRepo.ReadID(t.ID)
 		if err != nil {
 			return []domain.UserResponse{}, err
 		}
+		t.Name = tp.Name
 		u := domain.UserResponse{
 			UserName: user[i].UserName,
 			Type:     t,
@@ -157,8 +163,8 @@ func (a *Usecase) UserRead(form domain.UserAccountForm) (domain.UserResponse, er
 	return o, nil
 }
 
-func (a *Usecase) Update(user *domain.UserForm, uid uint) error {
-	u, err := a.UserRepo.ReadID(uid)
+func (a *Usecase) Update(user *domain.UserForm) error {
+	u, err := a.UserRepo.ReadUsername(user.UserName)
 	if err != nil {
 		return err
 	}
@@ -170,8 +176,8 @@ func (a *Usecase) Update(user *domain.UserForm, uid uint) error {
 	return nil
 }
 
-func (a *Usecase) Delete(user *domain.User, uid uint) error {
-	u, err := a.UserRepo.ReadID(uid)
+func (a *Usecase) Delete(user *domain.User) error {
+	u, err := a.UserRepo.ReadUsername(user.UserName)
 	if err != nil {
 		return err
 	}

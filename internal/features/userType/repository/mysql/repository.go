@@ -52,11 +52,3 @@ func (m *mysqlUserRepository) Delete(id uint) error {
 	}
 	return nil
 }
-
-func (m *mysqlUserRepository) ReadUser(id uint) (string, error) {
-	var uType domain.UserType
-	if err := m.Conn.Where("id = ?", id).First(&uType).Error; err != nil {
-		return "", err
-	}
-	return uType.Name, nil
-}

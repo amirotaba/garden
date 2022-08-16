@@ -81,14 +81,14 @@ func NewRepository(Db *gorm.DB) domain.Repositories {
 
 func NewUseCase(repo domain.Repositories) domain.UseCases {
 	usecase := domain.UseCases{
-		User:       userUsecase.NewUseCase(repo.User),
+		User:       userUsecase.NewUseCase(repo),
 		UserType:   userTypeUsecase.NewUseCase(repo.UserType),
 		Tag:        tagUsecase.NewUseCase(repo.Tag),
 		Garden:     gardenUsecase.NewUseCase(repo),
 		GardenLoc:  gardenLocUsecase.NewUseCase(repo.GardenLoc),
 		GardenType: gardenTypeUsecase.NewUseCase(repo.GardenType),
 		Tree:       treeUsecase.NewUseCase(repo.Tree),
-		TreeType:   treeTypeUsecase.newUseCase(repo.TreeType),
+		TreeType:   treeTypeUsecase.NewUseCase(repo.TreeType),
 		Comment:    commentUsecase.NewUseCase(repo.Comment),
 		Service:    serviceUsecase.NewUseCase(repo.Service),
 	}

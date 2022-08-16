@@ -15,6 +15,13 @@ func NewMysqlRepository(Conn *gorm.DB) domain.UserRepository {
 	}
 }
 
+func (m *mysqlUserRepository) Create(user domain.User) error {
+	if err := m.Conn.Create(user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *mysqlUserRepository) Read(n int) ([]domain.User, error) {
 	var user []domain.User
 	if err := m.Conn.Limit(n).Find(&user).Error; err != nil {
@@ -39,25 +46,10 @@ func (m *mysqlUserRepository) ReadID(id uint) (domain.User, error) {
 	return user, nil
 }
 
-func (m *mysqlUserRepository) ReadByType(n int, tp uint) ([]domain.User, error) {
+func (m *mysqlUserRepository) ReadByType(readForm domain.UserReadForm) ([]domain.User, error) {
 	var user []domain.User
-	if err := m.Conn.Limit(n).Where("type = ?", tp).Find(&user).Error; err != nil {
+	if err := m.Conn.Limit(readForm.Span).Where("type = ?", readForm.TypeID).Find(&user).Error; err != nil {
 		return []domain.User{}, err
-	}
-	return user, nil
-}
-
-func (m *mysqlUserRepository) Create(user domain.User) error {
-	if err := m.Conn.Create(user).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *mysqlUserRepository) SignIn(form *domain.LoginForm) (domain.User, error) {
-	var user domain.User
-	if err := m.Conn.Where("user_name = ?", form.Username).First(&user).Error; err != nil {
-		return domain.User{}, err
 	}
 	return user, nil
 }

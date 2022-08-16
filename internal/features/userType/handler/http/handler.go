@@ -66,13 +66,13 @@ func (m *Handler) Update(e echo.Context) error {
 }
 
 func (m *Handler) AddAccess(e echo.Context) error {
-	uid := jwt.UserID(e)
 	add := new(domain.AccessForm)
 	if err := e.Bind(add); err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err := m.UseCase.UpdateAccess(add, uid)
+	add.ID = jwt.UserID(e)
+	err := m.UseCase.UpdateAccess(add)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}

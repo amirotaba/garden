@@ -30,15 +30,15 @@ func (m *mysqlCommentRepository) Read(n int) ([]domain.Comment, error) {
 	return comment, nil
 }
 
-func (m *mysqlCommentRepository) ReadID(id uint, q string, n int) ([]domain.Comment, error) {
+func (m *mysqlCommentRepository) ReadID(form domain.ReadComment) ([]domain.Comment, error) {
 	var comment []domain.Comment
-	if err := m.Conn.Limit(n).Where(q, id).First(&comment).Error; err != nil {
+	if err := m.Conn.Limit(form.Span).Where(form.Query, form.ID).First(&comment).Error; err != nil {
 		return []domain.Comment{}, err
 	}
 	return comment, nil
 }
 
-func (m *mysqlCommentRepository) Update(comment *domain.CommentForm) error {
+func (m *mysqlCommentRepository) Update(comment domain.CommentForm) error {
 	if err := m.Conn.Model(domain.Comment{}).Where("id = ?", comment.ID).Updates(comment).Error; err != nil {
 		return err
 	}

@@ -22,12 +22,12 @@ func (a *usecase) Create(location *domain.GardenLocation) error {
 	return nil
 }
 
-func (a *usecase) Read(gid string, pageNumber string) ([]domain.GardenLocation, error) {
-	if gid == "" {
-		if pageNumber == "" {
-			pageNumber = "1"
+func (a *usecase) Read(form domain.GardenLocRead) ([]domain.GardenLocation, error) {
+	if form.GardenID == "" {
+		if form.PageNumber == "" {
+			form.PageNumber = "1"
 		}
-		nInt, err := strconv.Atoi(pageNumber)
+		nInt, err := strconv.Atoi(form.PageNumber)
 		if err != nil {
 			return []domain.GardenLocation{}, err
 		}
@@ -38,7 +38,7 @@ func (a *usecase) Read(gid string, pageNumber string) ([]domain.GardenLocation, 
 		}
 		return t, nil
 	}
-	idInt, err := strconv.Atoi(gid)
+	idInt, err := strconv.Atoi(form.GardenID)
 	b, err := a.Repository.ReadID(uint(idInt))
 	if err != nil {
 		return []domain.GardenLocation{}, err
